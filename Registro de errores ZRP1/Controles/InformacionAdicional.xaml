@@ -1,0 +1,101 @@
+﻿<UserControl x:Class="Registro_de_errores_ZRP1.Controles.InformacionAdicional"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Registro_de_errores_ZRP1.Controles"
+             xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="453">
+    <Grid>
+
+        <!--<MaterialDesign:Card Height="650" Name="color" MaterialDesign:ShadowAssist.ShadowDepth="Depth3">
+            <StackPanel Height="650">
+
+                <Grid Height="475">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="60"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"  Width="100" Name="TextBlockDialogId" Style="{StaticResource MaterialDesignDisplay1TextBlock}" Text="{Binding Id}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <Separator Grid.Row="0" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="2" />
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,1">
+                        <MaterialDesign:PackIcon Kind="ReportProblem" Height="35" Width="35" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Problema :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
+                        <TextBlock Name="TextBlockDialogProblema" Text="{Binding Problema}" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left"  />
+                    </StackPanel>
+                    <Separator Grid.Row="1" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,1">
+                        <MaterialDesign:PackIcon Kind="CalendarMultiselect" Height="35" Width="35" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Fecha :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
+                        <TextBlock Name="TextBlockDialogFecha" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left"  />
+                    </StackPanel>
+                    <Separator Grid.Row="2" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,1">
+                        <MaterialDesign:PackIcon Kind="DrawingBox" Height="35" Width="35" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Orden :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
+                        <TextBlock Name="TextBlockDialogOrden" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left"  />
+                    </StackPanel>
+                    <Separator Grid.Row="3" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,0,0,1">
+                        <MaterialDesign:PackIcon Kind="Industrial" Height="35" Width="35" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Material :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
+                        <TextBlock Name="TextBlockDialogMaterial" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left"  />
+                    </StackPanel>
+                    <Separator Grid.Row="4" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
+                    <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,0,0,1">
+                        <MaterialDesign:PackIcon Kind="Barcode" Height="35" Width="35" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="HU :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
+                        <TextBlock Name="TextBlockDialogHU" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left"  />
+                    </StackPanel>
+                    <Separator Grid.Row="5" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
+                    <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,0,0,1">
+                        <MaterialDesign:PackIcon Kind="User" Height="35" Width="35" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Clerck :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
+                        <TextBlock Name="TextBlockDialogClerck" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,15,0"  />
+                    </StackPanel>
+                    <Separator Grid.Row="6" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
+                    <StackPanel Grid.Row="7" Orientation="Horizontal" Margin="0,0,0,1">
+                        <MaterialDesign:PackIcon Kind="AccountAlert" Height="35" Width="35" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Departamento :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
+                        <TextBlock Name="TextBlockDialogDepartamento" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left"  />
+                    </StackPanel>
+                    <Separator Grid.Row="7" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
+                    <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="0,0,0,1">
+                        <MaterialDesign:PackIcon Kind="QuestionMarkRhombus" Height="35" Width="35" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Estatus :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
+                        <TextBlock Name="TextBlockDialogEstatus" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left" Width="200"  />
+                        <ToggleButton Name="ToggleButtonConfirmacionDeEstatus" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="70,0,0,0" Checked="ToggleButtonConfirmacionDeEstatus_Checked" Unchecked="ToggleButtonConfirmacionDeEstatus_Unchecked" />
+                    </StackPanel>
+                    <Separator Grid.Row="8" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
+                </Grid>
+
+                <Expander HorizontalAlignment="Stretch" VerticalAlignment="Bottom"  Header="Informacion adicional" Background="{Binding ElementName=color, Path=Background}"   ExpandDirection="Down"   Height="125">
+                    
+                        <StackPanel Orientation="Vertical" Margin="30,0,30,50" >
+                            <TextBlock Name="spanderText" VerticalAlignment="Top"  HorizontalAlignment="Left" Foreground="White"/>
+                            <TextBlock Name="TextBlockDialogInformacionAdicional"  Opacity="0.68" TextWrapping="Wrap" Margin="10" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+
+                        </StackPanel>
+                   
+                </Expander>
+
+                <StackPanel  Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                    <Button Name="BottonDialogAcceptar" Click="BottonDialogAcceptar_Click" Style="{StaticResource MaterialDesignFlatButton}" ToolTip="MaterialDesignFlatButton" Content="ACEPTAR" Width="225" Height="50"/>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Command="MaterialDesign:DialogHost.CloseDialogCommand" ToolTip="MaterialDesignFlatButton" Content="CANCELAR" Width="225" Height="50"/>
+
+                </StackPanel>
+            </StackPanel>
+        </MaterialDesign:Card>-->
+
+    </Grid>
+</UserControl>
