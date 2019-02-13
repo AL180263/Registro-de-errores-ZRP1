@@ -58,7 +58,7 @@ namespace Registro_de_errores_ZRP1.Controles
             {
                 if (UsuariosListView.SelectedItem != null)
                 {
-                    AdministradorDb.DeleteAsync(UsuariosListView.SelectedItem as Usuario);
+                    AdministradorDb.DeleteAsync(UsuariosListView.SelectedItem as Usuarios);
                 }
                 else
                 {
@@ -73,9 +73,9 @@ namespace Registro_de_errores_ZRP1.Controles
 
             if (UsuariosListView.SelectedItem != null)
             {
-                UsuarioNombretxt.Text = (UsuariosListView.SelectedItem as Usuario).Nombre;
-                UsuarioUserNametxt.Text = (UsuariosListView.SelectedItem as Usuario).UserName;
-                UsuarioPermisoCombo.Text = (UsuariosListView.SelectedItem as Usuario).Permiso;
+                UsuarioNombretxt.Text = (UsuariosListView.SelectedItem as Usuarios).Nombre;
+                UsuarioUserNametxt.Text = (UsuariosListView.SelectedItem as Usuarios).UserName;
+                UsuarioPermisoCombo.Text = (UsuariosListView.SelectedItem as Usuarios).Permiso;
             }
             else
             {
@@ -90,7 +90,7 @@ namespace Registro_de_errores_ZRP1.Controles
             {
                 if (UsuariosListView.SelectedItem != null)
                 {
-                    Usuario temp = new Usuario();
+                    Usuarios temp = new Usuarios();
 
                     if (!string.IsNullOrEmpty(UsuarioNombretxt.Text))
                     {
@@ -123,7 +123,7 @@ namespace Registro_de_errores_ZRP1.Controles
                         return;
                     }
 
-                    AdministradorDb.UpdateAsyn(UsuariosListView.SelectedItem as Usuario, temp);
+                    AdministradorDb.UpdateAsyn(UsuariosListView.SelectedItem as Usuarios, temp);
                     ActualizarAsync();
                     Clear();
                 }
@@ -140,7 +140,7 @@ namespace Registro_de_errores_ZRP1.Controles
 
         private void AdicionarNuevoUsuario_Click(object sender, RoutedEventArgs e)
         {
-            Usuario temp = new Usuario();
+            Usuarios temp = new Usuarios();
 
             if (WifiAvaible())
             {
@@ -201,7 +201,7 @@ namespace Registro_de_errores_ZRP1.Controles
         {
             if (WifiAvaible())
             {
-                UsuariosListView.ItemsSource = await AdministradorDb.ReadAsync<Usuario>();
+                UsuariosListView.ItemsSource = await AdministradorDb.ReadAsync<Usuarios>();
                 ProblemasListView.ItemsSource = await AdministradorDb.ReadAsync<Errores>();
                 DepartamentosListview.ItemsSource = await AdministradorDb.ReadAsync<Departamento>();
             }

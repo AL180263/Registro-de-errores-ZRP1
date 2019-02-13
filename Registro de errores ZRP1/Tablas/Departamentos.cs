@@ -8,16 +8,11 @@ using System.Reflection;
 
 namespace Registro_de_errores_ZRP1.Tablas
 {
-    class Departamento:IDateable
+    class Departamentos:IdateableObject
     {
        
        
-        [Excluible]
-        public int Id { get; set; }
-        [Excluible]
-        public List<PropertyInfo> Propiedades { get { return typeof(Departamento).GetProperties().ToList();  } } 
-        [Excluible]
-        public string Tabla { get { return "Departamentos"; } }
+       
 
         public string DepartamentosResponsables { get; set; }
 

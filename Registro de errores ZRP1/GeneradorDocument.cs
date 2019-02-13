@@ -21,7 +21,7 @@ namespace Registro_de_errores_ZRP1
 
        
 
-        public static void GenerarPdf(Error Reporte, CoreDataBaseAccess Database)
+        public static void GenerarPdf(Problemas Reporte, CoreDataBaseAccess Database)
         {
             FolderBrowserDialog folder = new FolderBrowserDialog();
 
@@ -34,9 +34,9 @@ namespace Registro_de_errores_ZRP1
                 gen = PdfWriter.GetInstance(document, new System.IO.FileStream(path, System.IO.FileMode.Create));
                 Font FuenteTitulos = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
                 Font FuenteNormal = new Font(Font.FontFamily.HELVETICA, 16, Font.NORMAL);
-                if (Database.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result.Count > 1)
+                if (Database.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result.Count > 1)
                 {
-                    document.AddAuthor(Database.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result[0].ToString());
+                    document.AddAuthor(Database.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result[0].ToString());
                 }
                 else
                 {
@@ -65,9 +65,9 @@ namespace Registro_de_errores_ZRP1
                 document.Add(new Paragraph(string.Format("Reporte de problema ZRP1 {0}{1}", "".PadRight(25), Reporte.Fecha.ToString("d / MMMM / yyyy", CultureInfo.CreateSpecificCulture("es-MX"))), new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD)));
                 document.Add(Chunk.NEWLINE);
                 var d = new Paragraph("Clerck  : ", FuenteTitulos);
-                if (Database.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result.Count > 0)
+                if (Database.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result.Count > 0)
                 {
-                    d.AddSpecial(new Phrase(string.Format("({0}) {1}", Reporte.Usuario, Database.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result[0]), FuenteNormal));
+                    d.AddSpecial(new Phrase(string.Format("({0}) {1}", Reporte.Usuario, Database.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result[0]), FuenteNormal));
                 }
                 else
                 {
@@ -170,7 +170,7 @@ namespace Registro_de_errores_ZRP1
             return image;
         }
 
-        public static void GenerarExcel(List<Error>Errores)
+        public static void GenerarExcel(List<Problemas>Errores)
         {
          
             Excel._Workbook workbook = ExcelBook.Workbooks.Add(Type.Missing);

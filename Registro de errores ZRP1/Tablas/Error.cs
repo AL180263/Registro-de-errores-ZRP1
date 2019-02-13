@@ -8,27 +8,9 @@ using ConsultaCore;
 
 namespace Registro_de_errores_ZRP1.Tablas
 {
-  public  class Error : IDateable
+  public  class Problemas : IdateableObject
     {
-        private readonly List<PropertyInfo> propiedades = typeof(Error).GetProperties().ToList();
-
-        #region implementacion de IDateable
-        [Excluible]
-        public int Id { get; set; }
-        [Excluible]
-        public string Tabla { get => "Problemas"; }
-        [Excluible]
-        public List<PropertyInfo> Propiedades
-        {
-            get
-            {
-                propiedades.RemoveAll(x => x.Name == "Propiedades" || x.Name == "Tabla" || x.Name == "EstatusString");
-
-                return propiedades;
-            }
-        }
-
-        #endregion
+       
 
         public string EstatusString
         {

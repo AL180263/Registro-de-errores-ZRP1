@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ConsultaCore;
+using ConsultaCore.ExcelInterop;
 using Registro_de_errores_ZRP1.Tablas;
 using MaterialDesignThemes.Wpf;
 using MaterialDesignColors;
@@ -17,7 +18,7 @@ using Registro_de_errores_ZRP1.Controles;
 using System.Printing;
 using System.IO;
 using System.Net.NetworkInformation;
-
+using System.Reflection;
 
 namespace Registro_de_errores_ZRP1
 {
@@ -33,6 +34,12 @@ namespace Registro_de_errores_ZRP1
             try
             {
 
+                Prueba prueba = new Prueba();
+
+                List<PropertyInfo> t = prueba.Propiedades;
+
+                string parte = prueba.Tabla;
+                
 
                 NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
 
@@ -62,9 +69,9 @@ namespace Registro_de_errores_ZRP1
 
                 if (AdministradorDb.Conectar())
                 {
-                    if (AdministradorDb.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", Environment.UserName.ToUpper())).Result.Count > 0)
+                    if (AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Environment.UserName.ToUpper())).Result.Count > 0)
                     {
-                        ConcurrentUsuario = AdministradorDb.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", Environment.UserName.ToLowerInvariant())).Result[0];
+                        ConcurrentUsuario = AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Environment.UserName.ToLowerInvariant())).Result[0];
                         ChipUsuario.Content = ConcurrentUsuario.Nombre;
                     }
                     else
@@ -119,11 +126,11 @@ namespace Registro_de_errores_ZRP1
 
         #region Variables
 
-        private List<Error> bufferError = new List<Error>();
+        private List<Problemas> bufferError = new List<Problemas>();
 
-        private Error context = new Error();
+        private Problemas context = new Problemas();
 
-        private Usuario ConcurrentUsuario = new Usuario() { PermisoEnum = PERMISO.Usuario };
+        private Usuarios ConcurrentUsuario = new Usuarios() { PermisoEnum = PERMISO.Usuario };
 
         PaletteHelper tema = new PaletteHelper();
 
@@ -131,7 +138,7 @@ namespace Registro_de_errores_ZRP1
 
         List<string> rellenar = new List<string>();
 
-        public Error Old;
+        public Problemas Old;
 
         public bool IsConected = false;
 
@@ -222,7 +229,7 @@ namespace Registro_de_errores_ZRP1
                             AdministradorDb.PathDataBase = db.FileName;
                         //if (ConcurrentUsuario.PermisoEnum == PERMISO.Programador)
                         //{
-                        //    AdministradorDb.NormalizeDatabase(new Usuario(), new Departamento(), new Error(), new Errores(), new Turnos(), new Lote());
+                        //    AdministradorDb.NormalizeDatabase(new Usuarios(), new Departamento(), new Problemas(), new Errores(), new Turnos(), new Lote());
                         //}
                           
                        
@@ -275,7 +282,7 @@ namespace Registro_de_errores_ZRP1
                         {
                             if (generar.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                             {
-                                AdministradorDb.CreateDataBase(generar.FileName, new Error(), new Errores(), new Usuario(), new Turnos(), new Departamento(), new Lote());
+                                AdministradorDb.CreateDataBase(generar.FileName, new Problemas(), new Errores(), new Usuarios(), new Turnos(), new Departamento(), new Lote());
                                 if (AdministradorDb.Conectar())
                                 {
                                     Settings.Default.CadenaDeConexion = AdministradorDb.CadenaDeConexion;
@@ -393,7 +400,7 @@ namespace Registro_de_errores_ZRP1
            
             if ( WifiAvaible())
             {
-                AdministradorDb.UpdateAsyn((ListviewErrores.SelectedItem as Error), context);
+                AdministradorDb.UpdateAsyn((ListviewErrores.SelectedItem as Problemas), context);
 
                 actualizarListview();
 
@@ -408,7 +415,7 @@ namespace Registro_de_errores_ZRP1
         
             if ( WifiAvaible())
             {
-                Editar(ListviewErrores.SelectedItem as Error);
+                Editar(ListviewErrores.SelectedItem as Problemas);
             }
            
         }
@@ -419,7 +426,7 @@ namespace Registro_de_errores_ZRP1
             {
                 try
                 {
-                    GeneradorDocument.GenerarPdf(ListviewErrores.SelectedItem as Error, AdministradorDb);
+                    GeneradorDocument.GenerarPdf(ListviewErrores.SelectedItem as Problemas, AdministradorDb);
                 }
                 catch (Exception A5)
                 {
@@ -442,7 +449,7 @@ namespace Registro_de_errores_ZRP1
                 {
                     if (IsConected == true)
                     {
-                        AdministradorDb.DeleteAsync(ListviewErrores.SelectedItem as Error);
+                        AdministradorDb.DeleteAsync(ListviewErrores.SelectedItem as Problemas);
                         actualizarListview();
                         DialogHostInformacionDelError.IsOpen = false;
                     }
@@ -514,15 +521,15 @@ namespace Registro_de_errores_ZRP1
 
                                 var seleccionada = listPrint.Where(o => o.FullName == filtro).ToList()[0];
 
-                                PrinterLabel.PrintThermalLabel(ListviewErrores.SelectedItem as Error, ConcurrentUsuario.Nombre, ImpresorasCombo.SelectedItem as string, Settings.Default.LabelKind);
+                                PrinterLabel.PrintThermalLabel(ListviewErrores.SelectedItem as Problemas, ConcurrentUsuario.Nombre, ImpresorasCombo.SelectedItem as string, Settings.Default.LabelKind);
 
                                 MostrarImpresion.IsOpen = false;
 
-                                //new PrinterLabel().PrintLabel(ListviewErrores.SelectedItem as Error, ConcurrentUsuario.Nombre, seleccionada);
+                                //new PrinterLabel().PrintLabel(ListviewErrores.SelectedItem as Problemas, ConcurrentUsuario.Nombre, seleccionada);
 
 
 
-                                //new PrinterLabel().Print(ListviewErrores.SelectedItem as Error,ConcurrentUsuario.Nombre, ImpresorasCombo.SelectedItem.ToString());
+                                //new PrinterLabel().Print(ListviewErrores.SelectedItem as Problemas,ConcurrentUsuario.Nombre, ImpresorasCombo.SelectedItem.ToString());
                             }
                             else
                             {
@@ -563,7 +570,7 @@ namespace Registro_de_errores_ZRP1
 
             //    var seleccionada = listPrint.Where(o => o.Name == filtro).ToList()[0];
 
-            //    new PrinterLabel(ListviewErrores.SelectedItem as Error, seleccionada);
+            //    new PrinterLabel(ListviewErrores.SelectedItem as Problemas, seleccionada);
             //    //ImpresionDeEtiqueta();
             //}
             //catch (Exception error)
@@ -584,7 +591,7 @@ namespace Registro_de_errores_ZRP1
         {
             bool IsManual = HoraManualCheckBox.IsChecked ?? false;
 
-            Error t = ObtenerDatos(!IsManual);
+            Problemas t = ObtenerDatos(!IsManual);
             
             if (WifiAvaible())
             {
@@ -664,10 +671,10 @@ namespace Registro_de_errores_ZRP1
         {
             if (sender != null)
             {
-                /*DatosShow = new Controles.InformacionAdicional((sender as System.Windows.Controls.ListView).SelectedItem as Error)*/
+                /*DatosShow = new Controles.InformacionAdicional((sender as System.Windows.Controls.ListView).SelectedItem as Problemas)*/
                 try
                 {
-                    Enlazar((sender as System.Windows.Controls.ListView).SelectedItem as Error);
+                    Enlazar((sender as System.Windows.Controls.ListView).SelectedItem as Problemas);
                     DialogHostInformacionDelError.IsOpen = true;
                 }
                 catch (Exception Error)
@@ -703,7 +710,7 @@ namespace Registro_de_errores_ZRP1
             {
                 try
                 {
-                    Enlazar(ListviewErrores.SelectedItem as Error);
+                    Enlazar(ListviewErrores.SelectedItem as Problemas);
                     DialogHostInformacionDelError.IsOpen = true;
                 }
                 catch (Exception Error)
@@ -845,12 +852,12 @@ namespace Registro_de_errores_ZRP1
 
         }
 
-        public  void Editar(Error error)
+        public  void Editar(Problemas error)
         {
             if ( WifiAvaible())
             {
                 ComboBoxTurnos.Text = error.Turno;
-                ComboBoxUsuarios.SelectedItem = AdministradorDb.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", error.Usuario)).Result[0];
+                ComboBoxUsuarios.SelectedItem = AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", error.Usuario)).Result[0];
                 DatosNuevosComboProblema.Text = error.Problema;
                 DatosNuevosComboResponsable.Text = error.Departamento;
                 DatosNuevosHora.IsEnabled = true;
@@ -860,7 +867,7 @@ namespace Registro_de_errores_ZRP1
                 DatosNuevosTextBoxMaterial.Text = error.Material;
                 DatosNuevosTextBoxOrden.Text = error.Orden;
 
-                Old = new Error { Id = error.Id, Estatus = error.Estatus, Fecha = error.Fecha, HashCode = error.HashCode };
+                Old = new Problemas { Id = error.Id, Estatus = error.Estatus, Fecha = error.Fecha, HashCode = error.HashCode };
                 ButtonAgregar.IsEnabled = false;
                 ButtonUpdate.IsEnabled = true;
                 DialogHostInformacionDelError.IsOpen = false;
@@ -869,13 +876,13 @@ namespace Registro_de_errores_ZRP1
 
         }
 
-        public void Actualizar(Error old)
+        public void Actualizar(Problemas old)
         {
             if ( WifiAvaible())
             {
                 try
                 {
-                    Error buf = ObtenerDatos(false);
+                    Problemas buf = ObtenerDatos(false);
                     if (buf != null)
                     {
                         buf.Estatus = old.Estatus;
@@ -940,11 +947,11 @@ namespace Registro_de_errores_ZRP1
 
         }
 
-        public Error ObtenerDatos(bool Actual = true)
+        public Problemas ObtenerDatos(bool Actual = true)
         {
             try
             {
-                Error buffer = new Error();
+                Problemas buffer = new Problemas();
 
                 if (ComboBoxTurnos.SelectedItem != null)
                 {
@@ -959,12 +966,12 @@ namespace Registro_de_errores_ZRP1
                 }
                 if (ComboBoxUsuarios.SelectedItem != null)
                 {
-                    buffer.Usuario = (ComboBoxUsuarios.SelectedItem as Usuario).UserName;
+                    buffer.Usuario = (ComboBoxUsuarios.SelectedItem as Usuarios).UserName;
                 }
                 else
                 {
                     snackbarNormal.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1000));
-                    snackbarNormal.MessageQueue.Enqueue("El campo \"Usuario\" no puede estar vacio");
+                    snackbarNormal.MessageQueue.Enqueue("El campo \"Usuarios\" no puede estar vacio");
                     ComboBoxUsuarios.Focus();
                     return null;
                 }
@@ -1033,14 +1040,14 @@ namespace Registro_de_errores_ZRP1
             {
 
                 new Log(b2.Message);
-                return new Error();
+                return new Problemas();
                 
                     
             }
            
         }
 
-        private async  void Enlazar(Error data)
+        private async  void Enlazar(Problemas data)
         {
             
           await Task.Factory.StartNew(() =>
@@ -1058,9 +1065,9 @@ namespace Registro_de_errores_ZRP1
                     this.TextBlockDialogHU.Text = data.HU;
                     if ( WifiAvaible())
                     {
-                        if (AdministradorDb.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", data.Usuario)).Result.Count > 0)
+                        if (AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", data.Usuario)).Result.Count > 0)
                         {
-                            this.TextBlockDialogClerck.Text = AdministradorDb.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", data.Usuario)).Result[0].Nombre;
+                            this.TextBlockDialogClerck.Text = AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", data.Usuario)).Result[0].Nombre;
                         }
                     }
                     else
@@ -1101,7 +1108,7 @@ namespace Registro_de_errores_ZRP1
                 {
                     if (!string.IsNullOrEmpty(AdministradorDb.CadenaDeConexion))
                     {
-                        this.ComboBoxUsuarios.ItemsSource = await AdministradorDb.ReadAsync<Usuario>();
+                        this.ComboBoxUsuarios.ItemsSource = await AdministradorDb.ReadAsync<Usuarios>();
                         this.ComboBoxTurnos.ItemsSource = await AdministradorDb.ReadAsync<Turnos>();
                         IconoDatabase.ToolTip = AdministradorDb.CadenaDeConexion;
                         DatosNuevosComboProblema.ItemsSource = await AdministradorDb.ReadAsync<Errores>();
@@ -1114,9 +1121,9 @@ namespace Registro_de_errores_ZRP1
                         IconoDatabase.Foreground = System.Windows.Media.Brushes.Green;
 
 
-                        if (AdministradorDb.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", Environment.UserName.ToUpper())).Result.Count > 0)
+                        if (AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Environment.UserName.ToUpper())).Result.Count > 0)
                         {
-                            ConcurrentUsuario = AdministradorDb.ReadAsync<Usuario>(string.Format("UserName=\"{0}\"", Environment.UserName.ToLowerInvariant())).Result[0];
+                            ConcurrentUsuario = AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Environment.UserName.ToLowerInvariant())).Result[0];
                             ChipUsuario.Content = ConcurrentUsuario.Nombre;
                             if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
                             {
@@ -1215,8 +1222,8 @@ namespace Registro_de_errores_ZRP1
                     ListviewErrores.SelectionChanged -= ListviewErrores_SelectionChanged;
                     if (ToggleButtonFiltrado.IsChecked ?? false)
                     {
-                        this.ListviewErrores.ItemsSource = from n in AdministradorDb.ReadAsync<Error>().Result where n.Estatus == true select n;
-                        bufferError = await AdministradorDb.ReadAsync<Error>();
+                        this.ListviewErrores.ItemsSource = from n in AdministradorDb.ReadAsync<Problemas>().Result where n.Estatus == true select n;
+                        bufferError = await AdministradorDb.ReadAsync<Problemas>();
 
                         var t = ListviewErrores.Items;
 
@@ -1226,8 +1233,8 @@ namespace Registro_de_errores_ZRP1
                     }
                     else
                     {
-                        this.ListviewErrores.ItemsSource = from a in AdministradorDb.ReadAsync<Error>().Result where a.Estatus == false select a;
-                        bufferError = await AdministradorDb.ReadAsync<Error>();
+                        this.ListviewErrores.ItemsSource = from a in AdministradorDb.ReadAsync<Problemas>().Result where a.Estatus == false select a;
+                        bufferError = await AdministradorDb.ReadAsync<Problemas>();
                     }
                     ListviewErrores.SelectionChanged += ListviewErrores_SelectionChanged;
                 }
@@ -1315,11 +1322,18 @@ namespace Registro_de_errores_ZRP1
 
         private void BotonGenerarExcel_Click(object sender, RoutedEventArgs e)
         {
-            List<Error> pem = ListviewErrores.Items.Cast<Error>().ToList();
+            List<Problemas> pem = ListviewErrores.Items.Cast<Problemas>().ToList();
 
             if (WifiAvaible())
             {
-                var iner = InteropExcelDataBase.ConvertIDateableToDataTable(pem.ToArray());
+                FolderBrowserDialog folder = new FolderBrowserDialog();
+                if (folder.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    string path = string.Format("{0}\\Reporte_{1}", folder.SelectedPath, DateTime.Now.ToString("dd_MM_yyyy"));
+                    InteropExcelDataBase.GenerarHojaExcel(pem.ToArray(), path);
+                    //ListviewErrores.ItemsSource = InteropExcelDataBase.ConvertIDateableToDataTable(pem.ToArray()).AsEnumerable();
+
+                }
             }
            
             

@@ -20,7 +20,7 @@ namespace Registro_de_errores_ZRP1
     public static class PrinterLabel
     {
 
-        public static string ToFileZPLStringBuilder(Error reporte,string nombre, string NombreDeEtiqueta)
+        public static string ToFileZPLStringBuilder(Problemas reporte,string nombre, string NombreDeEtiqueta)
         {
             // 0 = Departamento
             // 1 = StatusString
@@ -32,7 +32,7 @@ namespace Registro_de_errores_ZRP1
             // 7 = Orden
             // 8 = Problema
             // 9 = Turno
-            // 10 = Usuario
+            // 10 = Usuarios
             // 11 = Nombre
 
             string direct = Environment.CurrentDirectory + @"\Etiquetas\{0}" ;
@@ -52,7 +52,7 @@ namespace Registro_de_errores_ZRP1
             return resultado;
         }
 
-        public static string ToFileZPLStringBuilder(Error reporte, string nombre)
+        public static string ToFileZPLStringBuilder(Problemas reporte, string nombre)
         {
 
             // 0 = Departamento
@@ -65,7 +65,7 @@ namespace Registro_de_errores_ZRP1
             // 7 = Orden
             // 8 = Problema
             // 9 = Turno
-            // 10 = Usuario
+            // 10 = Usuarios
             // 11 = Nombre
 
             string directorio = Environment.CurrentDirectory + @"\Etiquetas\Etiqueta.lb";
@@ -89,7 +89,7 @@ namespace Registro_de_errores_ZRP1
         }
 
 
-        public static string ZPLStringBuilder(Error reporte, string nombre)
+        public static string ZPLStringBuilder(Problemas reporte, string nombre)
         {
             // 0 = Departamento
             // 1 = StatusString
@@ -101,7 +101,7 @@ namespace Registro_de_errores_ZRP1
             // 7 = Orden
             // 8 = Problema
             // 9 = Turno
-            // 10 = Usuario
+            // 10 = Usuarios
             // 11 = Nombre
 
             string label = string.Format(Properties.Settings.Default.LabelModel, reporte.Departamento, reporte.EstatusString, reporte.Fecha.ToString("dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture),reporte.HashCode,reporte.HU,reporte.Informacion_Extra,reporte.Material,reporte.Orden,reporte.Problema, reporte.Turno,reporte.Usuario,nombre);
@@ -109,7 +109,7 @@ namespace Registro_de_errores_ZRP1
         }
 
 
-        public static void PrintThermalLabel(Error reporte, string nombre, string impresora, bool Automatico = true)
+        public static void PrintThermalLabel(Problemas reporte, string nombre, string impresora, bool Automatico = true)
         {
 
             if (Automatico)
@@ -133,7 +133,7 @@ namespace Registro_de_errores_ZRP1
 
         }
 
-        public static void PrintThermalLabel(Error reporte, string nombre, string impresora, string fileName)
+        public static void PrintThermalLabel(Problemas reporte, string nombre, string impresora, string fileName)
         {
 
           

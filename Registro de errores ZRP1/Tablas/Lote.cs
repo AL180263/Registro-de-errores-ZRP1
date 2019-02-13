@@ -8,18 +8,8 @@ using ConsultaCore;
 
 namespace Registro_de_errores_ZRP1.Tablas
 {
-    class Lote : IDateable
-    {
-        private int id;
-
-        
-
-        public string Tabla => "Lote";
-
-        public List<PropertyInfo> Propiedades => typeof(Lote).GetProperties().ToList();
-
-        public int Id { get => id; set => id = value; }
-
+    class Lote : IdateableObject
+    {      
         public string NumeroDeLote { get; set; }
 
         public string Orden { get; set; }

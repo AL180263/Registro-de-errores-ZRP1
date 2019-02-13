@@ -8,14 +8,8 @@ using System.Reflection;
 
 namespace Registro_de_errores_ZRP1.Tablas
 {
-    class Errores: IDateable
-    {
-        public int Id { get; set; }
-
-        public string Tabla { get; } = "Errores";
-
-        public List<PropertyInfo> Propiedades { get; } = typeof(Errores).GetProperties().ToList();
-
+    class Errores: IdateableObject
+    {       
         public string Error { get; set; }
 
 

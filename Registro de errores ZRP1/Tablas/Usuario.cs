@@ -17,13 +17,9 @@ namespace Registro_de_errores_ZRP1.Tablas
 
     }
 
-    class Usuario:IDateable
+    class Usuarios:IdateableObject
     {
-        private int id;
-
-        private readonly string tabla = "Usuarios";
-
-        private readonly List<PropertyInfo> propiedades = typeof(Usuario).GetProperties().ToList().Where(o => o.Name != "PermisoEnum").ToList();
+      
 
 
         private string userName;
@@ -33,31 +29,21 @@ namespace Registro_de_errores_ZRP1.Tablas
         private string permiso;
 
              
-        public Usuario()
+        public Usuarios()
         {
 
         }
-        public Usuario(string userName, string nombre)
+        public Usuarios(string userName, string nombre)
         {
             this.userName = userName;
             this.nombre = nombre;
         }
 
-        public int Id { get => id; set => id = value; }
-        public string Tabla => tabla;
-        public List<PropertyInfo> Propiedades
-        {
-            get
-            {
-                propiedades.RemoveAll(x => x.Name == "Propiedades" || x.Name == "Tabla");
-
-                return propiedades;
-            }
-        }
+      
         public string UserName { get => userName; set => userName = value; }
         public string Nombre { get => nombre; set => nombre = value; }
         public string Permiso { get => permiso.ToUpperInvariant(); set => permiso = value.ToUpperInvariant(); }
-
+        [Excluible]
         public PERMISO PermisoEnum
         {
             get
@@ -116,7 +102,7 @@ namespace Registro_de_errores_ZRP1.Tablas
 
         public override bool Equals(object obj)
         {
-            var usuario = obj as Usuario;
+            var usuario = obj as Usuarios;
             return usuario != null &&
                    userName == usuario.userName &&
                    nombre == usuario.nombre;
