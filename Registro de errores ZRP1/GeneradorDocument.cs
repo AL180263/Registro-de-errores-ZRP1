@@ -97,7 +97,7 @@ namespace Registro_de_errores_ZRP1
                 document.Add(Chunk.NEWLINE);
 
 
-                var c = new Paragraph("Departamento del problema : ", FuenteTitulos);
+                var c = new Paragraph("Departamentos del problema : ", FuenteTitulos);
                 c.AddSpecial(new Phrase(Reporte.Departamento, FuenteNormal));
                 document.Add(c);
                 document.Add(Chunk.NEWLINE);

@@ -211,7 +211,7 @@
                                 <Separator Style="{StaticResource MaterialDesignDarkSeparator}"/>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
                                     <Button Name="ButtonAgregarUsuarios"  Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}" VerticalAlignment="Center" ToolTip="Administrar Usuarios, Problemas o Departamentos" Margin="25,0,0,0" Click="ButtonAgregarUsuarios_Click" >
-                                        <MaterialDesign:PackIcon  Kind="UserSettingsVariant" Height="24" Width="24" HorizontalAlignment="Right"  Margin="5,5,5,5"/>
+                                        <MaterialDesign:PackIcon  Kind="UserSettings" Height="24" Width="24" HorizontalAlignment="Right"  Margin="5,5,5,5"/>
                                     </Button>
                                     <Button Name="ButtonBuscarBaseDeDatos"  Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}" VerticalAlignment="Center" ToolTip="Buscar una base de datos" Margin="25,0,0,0" Click="ButtonBuscarBaseDeDatos_Click" >
                                         <MaterialDesign:PackIcon  Kind="DatabaseSearch" Height="24" Width="24" HorizontalAlignment="Right"  Margin="5,5,5,5"/>
@@ -282,7 +282,7 @@
 
                             <CheckBox Name="HoraManualCheckBox" Grid.Row="2" Grid.Column="0" Style="{StaticResource MaterialDesignCheckBox}" Content="Hora Manual" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" IsChecked="False" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,5,0,0" />
 
-                            <MaterialDesign:TimePicker IsEnabled="{Binding ElementName=HoraManualCheckBox, Path=IsChecked, Mode=OneWay}"  Grid.Row="2" Grid.Column="0" Is24Hours="False" x:Name="DatosNuevosHora" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" Margin="10,30,0,10" MaterialDesign:HintAssist.Hint="Hora del reporte" MaterialDesign:HintAssist.IsFloating="True"/>
+                            <MaterialDesign:TimePicker IsEnabled="{Binding ElementName=HoraManualCheckBox, Path=IsChecked, Mode=OneWay}"  Grid.Row="2" Grid.Column="0" Is24Hours="False" x:Name="DatosNuevosHora" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" Margin="2,20,0,0" MaterialDesign:HintAssist.Hint="Fecha y hora" MaterialDesign:HintAssist.IsFloating="True"/>
                             <ComboBox x:Name="DatosNuevosComboProblema" Grid.Row="2" Grid.Column="1" MaterialDesign:HintAssist.Hint="Problema" MaterialDesign:HintAssist.IsFloating="True" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" FontSize="16" VerticalAlignment="Top" Margin="10,15,11,0" IsEditable="True" />
                             <TextBox x:Name="DatosNuevosTextBoxOrden" Grid.Row="3" MaterialDesign:HintAssist.Hint="Orden" MaterialDesign:HintAssist.IsFloating="True" Width="300" FontSize="16" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" VerticalAlignment="Center" Margin="10,0,0,0" HorizontalAlignment="Left"/>
                             <TextBox x:Name="DatosNuevosTextBoxMaterial" Grid.Row="3" Grid.Column="1" MaterialDesign:HintAssist.Hint="Material" MaterialDesign:HintAssist.IsFloating="True" Width="500" FontSize="16" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" VerticalAlignment="Center" Margin="14,0,11,0" HorizontalAlignment="Left"/>

@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Registro_de_errores_ZRP1.Tablas
 {
-    class Departamentos:IdateableObject
+  public  class Departamentos:IdateableObject
     {
        
        

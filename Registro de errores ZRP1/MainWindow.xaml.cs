@@ -282,7 +282,7 @@ namespace Registro_de_errores_ZRP1
                         {
                             if (generar.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                             {
-                                AdministradorDb.CreateDataBase(generar.FileName, new Problemas(), new Errores(), new Usuarios(), new Turnos(), new Departamento(), new Lote());
+                                AdministradorDb.CreateDataBase(generar.FileName, new Problemas(), new Errores(), new Usuarios(), new Turnos(), new Departamentos(), new Lote());
                                 if (AdministradorDb.Conectar())
                                 {
                                     Settings.Default.CadenaDeConexion = AdministradorDb.CadenaDeConexion;
@@ -1020,7 +1020,7 @@ namespace Registro_de_errores_ZRP1
                 else
                 {
                     snackbarNormal.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1000));
-                    snackbarNormal.MessageQueue.Enqueue("El campo \"Departamento\" no puede estar vacio");
+                    snackbarNormal.MessageQueue.Enqueue("El campo \"Departamentos\" no puede estar vacio");
                     DatosNuevosComboResponsable.Focus();
                     return null;
                 }
@@ -1112,7 +1112,7 @@ namespace Registro_de_errores_ZRP1
                         this.ComboBoxTurnos.ItemsSource = await AdministradorDb.ReadAsync<Turnos>();
                         IconoDatabase.ToolTip = AdministradorDb.CadenaDeConexion;
                         DatosNuevosComboProblema.ItemsSource = await AdministradorDb.ReadAsync<Errores>();
-                        DatosNuevosComboResponsable.ItemsSource = await AdministradorDb.ReadAsync<Departamento>();
+                        DatosNuevosComboResponsable.ItemsSource = await AdministradorDb.ReadAsync<Departamentos>();
                         HoraMargen.Text = DateTime.Now.ToString("dd/MM/yyyy");
                         actualizarListview();
                      
@@ -1253,11 +1253,10 @@ namespace Registro_de_errores_ZRP1
 
         private void ChipUsuario_Click(object sender, RoutedEventArgs e)
         {
-            if (Environment.UserName.ToUpperInvariant() == "AH1075" || Environment.UserName.ToUpperInvariant() == "MC1139" || Environment.UserName.ToUpperInvariant() == "ALEXI")
-            {
+           
                 Registro_de_resina Resina = new Registro_de_resina();
                 Resina.Show();
-            }
+            
         }
 
         private void Window_PreviewKeyUp(object sender, System.Windows.Input.KeyEventArgs e)

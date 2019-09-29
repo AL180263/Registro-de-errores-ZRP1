@@ -10,8 +10,8 @@ namespace Registro_de_errores_ZRP1.Tablas
 {
   public  class Problemas : IdateableObject
     {
-       
 
+        [Excluible]
         public string EstatusString
         {
             get
@@ -46,7 +46,7 @@ namespace Registro_de_errores_ZRP1.Tablas
         public string Orden { get; set; }
 
         public string Problema { get; set; }
-        [Excluible]
+       
         public bool Estatus { get; set; }
 
         public DateTime Fecha { get; set; }

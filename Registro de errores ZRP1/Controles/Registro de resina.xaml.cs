@@ -35,9 +35,19 @@ namespace Registro_de_errores_ZRP1.Controles
         {
             InitializeComponent();
             WifiAvaible();
-            Consulta.CadenaDeConexion = Registro_de_errores_ZRP1.Properties.Settings.Default.CadenaDeConexion;
             this.snackbarNormal.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(2500));
             this.SnackbarConsulta.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(2500));
+            if (!string.IsNullOrEmpty(Properties.Settings.Default.CadenaDeConexion))
+            {
+                Consulta.CadenaDeConexion = Registro_de_errores_ZRP1.Properties.Settings.Default.CadenaDeConexion;
+            }
+            else
+            {
+                SnackbarConsulta.MessageQueue.Enqueue("No hay una cadena de conexion establecida!");
+            }
+           
+           
+            
 
             colorOriginal = Dock.Background;
         }
@@ -63,7 +73,7 @@ namespace Registro_de_errores_ZRP1.Controles
 
         internal void Consultar()
         {
-            if (WifiAvaible())
+            if (!string.IsNullOrEmpty(Properties.Settings.Default.CadenaDeConexion))
             {
                 try
                 {
@@ -79,8 +89,8 @@ namespace Registro_de_errores_ZRP1.Controles
                         }
                         else
                         {
-                            Clipboard.SetText("N//A");
-                            SnackbarConsulta.MessageQueue.Enqueue("Orden sin registro de lote, N//A");
+                            Clipboard.SetText("N/A");
+                            SnackbarConsulta.MessageQueue.Enqueue("Orden sin registro de lote, N/A");
                         }
 
                     }
@@ -97,6 +107,10 @@ namespace Registro_de_errores_ZRP1.Controles
                     SnackbarConsulta.MessageQueue.Enqueue(error.Message);
                 }
             }
+            else
+            {
+                SnackbarConsulta.MessageQueue.Enqueue("No hay una cadena de conexion establecida!");
+            }
            
 
 
@@ -111,7 +125,7 @@ namespace Registro_de_errores_ZRP1.Controles
                 {
                     if (!(string.IsNullOrEmpty(OrdenTxtBox.Text) || string.IsNullOrEmpty(LoteTxtbox.Text)))
                     {
-                    if (WifiAvaible())
+                    if (!string.IsNullOrEmpty(Properties.Settings.Default.CadenaDeConexion))
                     {
                         temp.Orden = OrdenTxtBox.Text;
                         temp.NumeroDeLote = LoteTxtbox.Text;
@@ -147,9 +161,14 @@ namespace Registro_de_errores_ZRP1.Controles
                         }
 
                     }
-                        
-
+                    else
+                    {
+                        SnackbarConsulta.MessageQueue.Enqueue("No hay una cadena de conexion establecida!");
                     }
+
+
+                }
+              
 
                     else
                     {

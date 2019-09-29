@@ -203,7 +203,7 @@ namespace Registro_de_errores_ZRP1.Controles
             {
                 UsuariosListView.ItemsSource = await AdministradorDb.ReadAsync<Usuarios>();
                 ProblemasListView.ItemsSource = await AdministradorDb.ReadAsync<Errores>();
-                DepartamentosListview.ItemsSource = await AdministradorDb.ReadAsync<Departamento>();
+                DepartamentosListview.ItemsSource = await AdministradorDb.ReadAsync<Departamentos>();
             }
            
         }
@@ -439,7 +439,7 @@ namespace Registro_de_errores_ZRP1.Controles
             {
                 if (DepartamentosListview.SelectedItem != null)
                 {
-                    AdministradorDb.DeleteAsync(DepartamentosListview.SelectedItem as Departamento);
+                    AdministradorDb.DeleteAsync(DepartamentosListview.SelectedItem as Departamentos);
                 }
                 else
                 {
@@ -458,7 +458,7 @@ namespace Registro_de_errores_ZRP1.Controles
                     if (!string.IsNullOrEmpty(DepartamentosTexbox.Text))
                     {
 
-                        AdministradorDb.UpdateAsyn((DepartamentosListview.SelectedItem as Departamento), new Departamento() { DepartamentosResponsables = DepartamentosTexbox.Text });
+                        AdministradorDb.UpdateAsyn((DepartamentosListview.SelectedItem as Departamentos), new Departamentos() { DepartamentosResponsables = DepartamentosTexbox.Text });
                         if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
                         {
                             Clear();
@@ -492,7 +492,7 @@ namespace Registro_de_errores_ZRP1.Controles
             {
                 if (!string.IsNullOrEmpty(DepartamentosTexbox.Text))
                 {
-                    AdministradorDb.InsertarAsync(new Departamento() { DepartamentosResponsables = DepartamentosTexbox.Text });
+                    AdministradorDb.InsertarAsync(new Departamentos() { DepartamentosResponsables = DepartamentosTexbox.Text });
                     if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
                     {
                         Clear();
@@ -517,7 +517,7 @@ namespace Registro_de_errores_ZRP1.Controles
         {
             if (DepartamentosListview.SelectedItem != null)
             {
-                DepartamentosTexbox.Text = (DepartamentosListview.SelectedItem as Departamento).DepartamentosResponsables;
+                DepartamentosTexbox.Text = (DepartamentosListview.SelectedItem as Departamentos).DepartamentosResponsables;
             }
         }
 
