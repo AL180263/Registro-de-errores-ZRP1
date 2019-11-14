@@ -5,20 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
+using Entities;
 namespace Registro_de_errores_ZRP1
 {
-    class Log
+  public class Log
     {
-        public Log()
-        {
-
-        }
+      
 
          private string m_exePath = string.Empty;
     public Log(string logMessage)
     {
         LogWrite(logMessage);
     }
+
+    
+
     public void LogWrite(string logMessage)
     {
         m_exePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -29,7 +30,9 @@ namespace Registro_de_errores_ZRP1
                 StringLog(logMessage, w);
             }
         }
+#pragma warning disable CS0168 // La variable 'ex' se ha declarado pero nunca se usa
         catch (Exception ex)
+#pragma warning restore CS0168 // La variable 'ex' se ha declarado pero nunca se usa
         {
         }
     }
@@ -45,7 +48,9 @@ namespace Registro_de_errores_ZRP1
             txtWriter.WriteLine("  :{0}", logMessage);
             txtWriter.WriteLine("-------------------------------");
         }
+#pragma warning disable CS0168 // La variable 'ex' se ha declarado pero nunca se usa
         catch (Exception ex)
+#pragma warning restore CS0168 // La variable 'ex' se ha declarado pero nunca se usa
         {
 
         }
@@ -61,7 +66,9 @@ namespace Registro_de_errores_ZRP1
                     w.Write(log);
                 }
             }
+#pragma warning disable CS0168 // La variable 'ex' se ha declarado pero nunca se usa
             catch (Exception ex)
+#pragma warning restore CS0168 // La variable 'ex' se ha declarado pero nunca se usa
             {
             }
 

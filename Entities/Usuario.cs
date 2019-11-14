@@ -42,6 +42,8 @@ namespace Entities
         [StringLength(6)]
         public string Reloj { get; set; }
 
+        public string Contraseña { get; set; }
+
         public string Nombre { get; set; }
 
         public Access Acceso { get; set; }
@@ -51,7 +53,7 @@ namespace Entities
         public virtual ICollection<Reporte> Reportes { get; set; }
 
         [NotMapped]
-        public static Usuario UsuarioActual { get; set; } = new Usuario("AA00", "Invitado", "0000", Access.Invitado);
+        public static Usuario UsuarioActual { get; set; } = new Usuario("AA0000", "Invitado", "0000", Access.Invitado);
 
         public override string ToString()
         {

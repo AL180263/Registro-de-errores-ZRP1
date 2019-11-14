@@ -18,7 +18,7 @@ namespace Test_Entities
 
         public virtual DbSet<Entities.Lote> Lotes { get; set; }
 
-        public virtual DbSet<Entities.LotesAndOrdenes> LotesAndOrdenes { get; set; }
+        public virtual DbSet<Entities.LoteOrden> LotesAndOrdenes { get; set; }
 
         public virtual DbSet<Entities.Orden> Ordenes { get; set; }
 
@@ -57,13 +57,13 @@ namespace Test_Entities
                .HasMany(o => o.Ordenes)
                .WithOptional(e => e.Resina)
                .HasForeignKey(k => k.ResinaMid);
-            modelBuilder.Entity<Entities.LotesAndOrdenes>()
+            modelBuilder.Entity<Entities.LoteOrden>()
                 .HasKey(k => new { k.OrdenId, k.LoteNumber })
                 .HasRequired(o => o.Orden)
                 .WithMany(p => p.LotesAndOrdenes)
                 .HasForeignKey(F => F.OrdenId);
 
-            modelBuilder.Entity<Entities.LotesAndOrdenes>()
+            modelBuilder.Entity<Entities.LoteOrden>()
                 .HasRequired(o => o.Lote)
                 .WithMany(o => o.Ordenes)
                 .HasForeignKey(f => f.LoteNumber);

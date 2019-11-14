@@ -10,7 +10,7 @@
         mc:Ignorable="d"
         Background="{DynamicResource MaterialDesignPaper}"
         
-        Title="Registro De Errores ZRP1" Height="712" Width="939"  IsManipulationEnabled="True" WindowStyle="ThreeDBorderWindow" WindowStartupLocation="CenterScreen" PreviewKeyUp="Window_PreviewKeyUp">
+        Title="Registro De Errores ZRP1" Height="712" Width="939"  IsManipulationEnabled="True" WindowStyle="ThreeDBorderWindow" WindowStartupLocation="CenterScreen" PreviewKeyUp="Window_PreviewKeyUp" Initialized="Window_Initialized" >
 
 
 
@@ -137,6 +137,7 @@
                                             <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Estatus :" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0" />
                                             <TextBlock x:Name="TextBlockDialogEstatus" Style="{StaticResource MaterialDesignHeadlineTextBlock}" VerticalAlignment="Center" HorizontalAlignment="Left" Width="285"  />
                                             <CheckBox  x:Name="ToggleButtonConfirmacionDeEstatus" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="50,0,10,0" Checked="ToggleButtonConfirmacionDeEstatus_Checked" Unchecked="ToggleButtonConfirmacionDeEstatus_Unchecked" />
+                                            
                                         </StackPanel>
                                         <Separator Grid.Row="8" VerticalAlignment="Bottom" Style="{StaticResource MaterialDesignDarkSeparator}" Height="1" />
                                     </Grid>
@@ -309,8 +310,8 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <Separator Grid.Row="0"  Style="{StaticResource MaterialDesignDarkSeparator}" VerticalAlignment="Bottom" Margin="0,0,0,0" />
-                            <Button Name="BotonGenerarExcel" VerticalAlignment="Center" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignFlatButton}" ToolTip="Generar archivo de Microsoft Excel" Click="BotonGenerarExcel_Click" >
-                                <MaterialDesign:PackIcon Kind="FileExcel" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" HorizontalAlignment="Right"  VerticalAlignment="Center" Height="30" Width="30" />
+                            <Button Name="BotonGenerarExcel" VerticalAlignment="Center" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignFlatButton}" ToolTip="Generar archivo de Microsoft Excel" Click="BotonGenerarExcel_Click" Margin="0,0,0,10" >
+                                <MaterialDesign:PackIcon Kind="FileExcelBox" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" HorizontalAlignment="Right"  VerticalAlignment="Center" Height="30" Width="30" />
                             </Button>
 
                             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left">
@@ -325,16 +326,16 @@
                                 <ListView  Name="ListviewErrores" SelectionChanged="ListviewErrores_SelectionChanged" MouseDoubleClick="ListviewErrores_MouseDoubleClick" >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Header="HashCode" Width="110" DisplayMemberBinding="{Binding HashCode}"/>
-                                            <GridViewColumn Header="Usuario" Width="80" DisplayMemberBinding="{Binding Usuario}"/>
+                                            <GridViewColumn Header="Hash" Width="110" DisplayMemberBinding="{Binding Hash}"/>
+                                            <GridViewColumn Header="Usuario" Width="80" DisplayMemberBinding="{Binding UserName}"/>
                                             <GridViewColumn Header="Fecha" Width="150" DisplayMemberBinding="{Binding Fecha}"/>
                                             <GridViewColumn Header="Turno" Width="75" DisplayMemberBinding="{Binding Turno}"/>
-                                            <GridViewColumn Header="Estatus" Width="100" DisplayMemberBinding="{Binding EstatusString}"/>
+                                            <GridViewColumn Header="Estatus" Width="100" DisplayMemberBinding="{Binding Estatus}"/>
                                             <GridViewColumn Header="Orden" Width="150" DisplayMemberBinding="{Binding Orden}" />
                                             <GridViewColumn Header="Material" Width="100" DisplayMemberBinding="{Binding Material}" />
-                                            <GridViewColumn Header="HU" Width="150" DisplayMemberBinding="{Binding HU}" />
-                                            <GridViewColumn Header="Problema" Width="250" DisplayMemberBinding="{Binding Problema}"/>
-                                            <GridViewColumn Header="Informacion extra" Width="300" DisplayMemberBinding="{Binding Informacion_Extra}"/>
+                                            <GridViewColumn Header="Hu" Width="150" DisplayMemberBinding="{Binding Hu}" />
+                                            <GridViewColumn Header="Incidente" Width="250" DisplayMemberBinding="{Binding Incidente}"/>
+                                            <GridViewColumn Header="Descripcion" Width="300" DisplayMemberBinding="{Binding Descripcion}"/>
 
                                         </GridView>
                                     </ListView.View>
@@ -349,9 +350,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="0.04*"/>
                         </Grid.ColumnDefinitions>
-                        <MaterialDesign:PackIcon Height="25" Grid.Column="0" Margin="5,0,0,0"  Width="25" Name="IconoDatabase" Kind="Database" HorizontalAlignment="Center" VerticalAlignment="Center"  Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}"/>
-                        <TextBlock Visibility="Collapsed" Name="TextBlockInformacionDeConexion" Grid.Column="1" Style="{StaticResource MaterialDesignSubheadingTextBlock}" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}"  VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                        <MaterialDesign:PackIcon Name="WifiEstatus" Grid.Column="2" Kind="Wifi" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="20" Height="20" MaterialDesign:ShadowAssist.ShadowDepth="Depth3"/>
+                       
+                        
                     </Grid>
 
 

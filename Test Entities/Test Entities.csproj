@@ -118,6 +118,11 @@
     <Compile Include="ModelRegreso.cs" />
     <Compile Include="Ordenes.cs" />
     <Compile Include="Preliminar.cs" />
+    <Compile Include="produccion\LotesOrdene.cs" />
+    <Compile Include="produccion\produccion.cs" />
+    <Compile Include="produccion\Reporte.cs" />
+    <Compile Include="produccion\sysdiagram.cs" />
+    <Compile Include="produccion\Usuario.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reportes.cs" />

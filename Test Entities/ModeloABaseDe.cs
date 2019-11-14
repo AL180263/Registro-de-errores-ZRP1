@@ -9,7 +9,7 @@
     {
         public DbSet<Lote> Lotes { get; set; }
 
-        public DbSet<Entities.LotesAndOrdenes> LotesAndOrdenes { get; set; }
+        public DbSet<Entities.LoteOrden> LotesAndOrdenes { get; set; }
 
         public DbSet<Orden> Ordenes { get; set; }
 
@@ -37,7 +37,7 @@
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Lote>().HasKey(o => o.LoteNumber);
-            modelBuilder.Entity<Entities.LotesAndOrdenes>().HasKey(o => o.OrdenId);
+            modelBuilder.Entity<Entities.LoteOrden>().HasKey(o => o.OrdenId);
             modelBuilder.Entity<Orden>().HasKey(o => o.OrdenId).ToTable("Ordenes");
             modelBuilder.Entity<Reporte>().HasKey(o => o.Hash);
             modelBuilder.Entity<Resina>().HasKey(o => o.MId);

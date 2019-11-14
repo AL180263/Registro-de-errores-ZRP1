@@ -15,54 +15,42 @@ using ConsultaCore;
 using MaterialDesignThemes.Wpf;
 using Registro_de_errores_ZRP1.Tablas;
 using System.Net.NetworkInformation;
+using Entities;
+using Registro_de_errores_ZRP1.Database_Context;
 
 
 namespace Registro_de_errores_ZRP1.Controles
 {
     /// <summary>
-    /// Lógica de interacción para Registro_de_resina.xaml
+    /// Lógica de interacción para RegistroResina.xaml
     /// </summary>
-    public partial class Registro_de_resina : Window
+    public partial class RegistroResina : Window
     {
 
-        private bool IsConected = false;
-
-        CoreDataBaseAccess Consulta = new CoreDataBaseAccess();
-
+        
         Brush colorOriginal;
 
-        public Registro_de_resina()
+        public RegistroResina()
         {
             InitializeComponent();
-            WifiAvaible();
+           
             this.snackbarNormal.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(2500));
             this.SnackbarConsulta.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(2500));
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.CadenaDeConexion))
-            {
-                Consulta.CadenaDeConexion = Registro_de_errores_ZRP1.Properties.Settings.Default.CadenaDeConexion;
-            }
-            else
-            {
-                SnackbarConsulta.MessageQueue.Enqueue("No hay una cadena de conexion establecida!");
-            }
-           
-           
-            
-
+          
             colorOriginal = Dock.Background;
         }
 
-        private void ConsultarButton_GotFocus(object sender, RoutedEventArgs e)
+        private async void ConsultarButton_GotFocus(object sender, RoutedEventArgs e)
         {
             
-            Consultar();
+            await ConsultarAsync();
             ConsultatxtBox.Focus();
             ConsultatxtBox.SelectAll();
         }
 
-        private void ConsultarButton_Click(object sender, RoutedEventArgs e)
+        private async void ConsultarButton_Click(object sender, RoutedEventArgs e)
         {
-            Consultar();
+            await ConsultarAsync();
             ConsultatxtBox.Focus();
             ConsultatxtBox.SelectAll();
         }
@@ -71,104 +59,111 @@ namespace Registro_de_errores_ZRP1.Controles
 
         #region Funciones internas
 
-        internal void Consultar()
+        internal async Task ConsultarAsync()
         {
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.CadenaDeConexion))
+            await Task.Run(() =>
             {
-                try
+                this.Dispatcher.Invoke(() =>
                 {
-
-
-                    if (!string.IsNullOrEmpty(ConsultatxtBox.Text))
+                    try
                     {
-                        var listTemp = Consulta.ReadAsync<Lote>(string.Format("Orden=\"{0}\"", ConsultatxtBox.Text)).Result;
-                        if (listTemp.Count > 0)
+
+
+                        if (!string.IsNullOrEmpty(ConsultatxtBox.Text))
                         {
-                            Clipboard.SetText(listTemp[0].NumeroDeLote);
-                            SnackbarConsulta.MessageQueue.Enqueue(string.Format("Se copio el siguente Lote: {0} al portapapeles", listTemp[0].NumeroDeLote));
+                            using (ConexionDB db = new ConexionDB())
+                            {
+                                var resultado = from res in db.LotesOrdenes
+                                                where res.Orden == ConsultatxtBox.Text
+                                                orderby res.FechaInsercion descending
+                                                select res;
+
+
+                               
+                                if (resultado.Count() > 0)
+                                {
+                                    Clipboard.SetText(resultado.First().Lote);
+                                    SnackbarConsulta.MessageQueue.Enqueue(string.Format("Se copio el siguente Lote: {0} al portapapeles", resultado.First().Lote));
+                                }
+                                else
+                                {
+                                    Clipboard.SetText("N/A");
+                                    SnackbarConsulta.MessageQueue.Enqueue("Orden sin registro de lote, N/A");
+                                }
+
+                            }
+
+
                         }
                         else
                         {
-                            Clipboard.SetText("N/A");
-                            SnackbarConsulta.MessageQueue.Enqueue("Orden sin registro de lote, N/A");
+                            SnackbarConsulta.MessageQueue.Enqueue("El campo Consulta no puede estar vacio");
+                            ConsultatxtBox.Focus();
                         }
 
                     }
-                    else
+                    catch (Exception error)
                     {
-                        SnackbarConsulta.MessageQueue.Enqueue("El campo Consulta no puede estar vacio");
-                        ConsultatxtBox.Focus();
+
+                        SnackbarConsulta.MessageQueue.Enqueue(error.Message);
                     }
-
-                }
-                catch (Exception error)
-                {
-
-                    SnackbarConsulta.MessageQueue.Enqueue(error.Message);
-                }
-            }
-            else
-            {
-                SnackbarConsulta.MessageQueue.Enqueue("No hay una cadena de conexion establecida!");
-            }
+                });
+            });
+               
+            
+            
            
 
 
         }
 
-        private  void Registrar()
+        internal async Task RegistrarAsync()
         {
-           
-          
-                Lote temp = new Lote();
+
+        await Task.Run(() =>
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                LoteOrden temp = new LoteOrden();
                 try
                 {
                     if (!(string.IsNullOrEmpty(OrdenTxtBox.Text) || string.IsNullOrEmpty(LoteTxtbox.Text)))
                     {
-                    if (!string.IsNullOrEmpty(Properties.Settings.Default.CadenaDeConexion))
-                    {
+
                         temp.Orden = OrdenTxtBox.Text;
-                        temp.NumeroDeLote = LoteTxtbox.Text;
-                        var ListaTemp = Consulta.ReadAsync<Lote>(string.Format("Orden=\"{0}\"", OrdenTxtBox.Text)).Result;
-                        if (ListaTemp.Count > 0)
+                        temp.Lote = LoteTxtbox.Text;
+                        temp.FechaInsercion = DateTime.Now;
+                        using (ConexionDB db = new ConexionDB())
                         {
-                            Consulta.UpdateAsyn(ListaTemp[0], temp);
-                            if (Consulta.Estado == Estados.Operacion_Exitosa)
+                            if (db.LotesOrdenes.Count() > 0)
                             {
+                                db.LotesOrdenes.Add(temp);
+                                db.SaveChanges();
+
                                 snackbarNormal.Background = colorOriginal;
-                                snackbarNormal.MessageQueue.Enqueue(string.Format("La orden {0} se ha actualizado!", temp.Orden, temp.NumeroDeLote));
+                                snackbarNormal.MessageQueue.Enqueue(string.Format("Se agrego un nuevo registro!"));
+
+
+
+
                             }
                             else
                             {
-                                snackbarNormal.Background = Brushes.Red;
-                                snackbarNormal.MessageQueue.Enqueue("El lote no se Actualizo correctamente");
-                            }
-
-                        }
-                        else
-                        {
-                            Consulta.InsertarAsync(temp);
-                            if (Consulta.Estado == Estados.Operacion_Exitosa)
-                            {
+                                db.LotesOrdenes.Add(temp);
+                                db.SaveChanges();
                                 snackbarNormal.Background = colorOriginal;
-                                snackbarNormal.MessageQueue.Enqueue(string.Format("Lote: {0}, Order: {1} Registrados!", temp.NumeroDeLote, temp.Orden));
-                            }
-                            else
-                            {
-                                snackbarNormal.Background = Brushes.Red;
-                                snackbarNormal.MessageQueue.Enqueue("No se pudo registrar el lote!");
+                                snackbarNormal.MessageQueue.Enqueue(string.Format("Lote: {0}, Order: {1} Registrados!", temp.Lote, temp.Orden));
+
                             }
                         }
 
-                    }
-                    else
-                    {
-                        SnackbarConsulta.MessageQueue.Enqueue("No hay una cadena de conexion establecida!");
-                    }
 
 
-                }
-              
+
+
+
+                    }
+
 
                     else
                     {
@@ -182,6 +177,12 @@ namespace Registro_de_errores_ZRP1.Controles
                     snackbarNormal.MessageQueue.Enqueue(error.Message);
 
                 }
+            });
+        });
+
+
+
+           
             
          
            
@@ -191,42 +192,7 @@ namespace Registro_de_errores_ZRP1.Controles
 
         }
 
-        private bool WifiAvaible()
-        {
-
-         
-                  
-
-                   
-
-
-
-                        if (NetworkInterface.GetIsNetworkAvailable())
-                        {
-                            IsConected = true;
-                            WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Green; });
-                            WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conectado a la red"; });
-                            return true;
-                        }
-                        else
-                        {
-                            IsConected = false;
-                            WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Red; });
-                            WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conexion no disponible!"; });
-                            WifiSnackbar.Dispatcher.Invoke(() => { WifiSnackbar.MessageQueue.Enqueue("Sin conexion a Internet, imposible realizar la operacion"); });
-                            return false;
-                        }
-                 
-
-
-
-
-
-
-
-
-              
-        }
+    
 
      
 
@@ -234,18 +200,18 @@ namespace Registro_de_errores_ZRP1.Controles
 
         #endregion
 
-        private  void ResgistrarButton_Click(object sender, RoutedEventArgs e)
+        private async  void ResgistrarButton_Click(object sender, RoutedEventArgs e)
         {
-            Registrar();
+            await RegistrarAsync();
             OrdenTxtBox.Clear();
             LoteTxtbox.Clear();
             OrdenTxtBox.Focus();
                
         }
 
-        private  void ResgistrarButton_GotFocus(object sender, RoutedEventArgs e)
+        private async  void ResgistrarButton_GotFocus(object sender, RoutedEventArgs e)
         {
-            Registrar();
+            await RegistrarAsync();
             OrdenTxtBox.Clear();
             LoteTxtbox.Clear();
             OrdenTxtBox.Focus();

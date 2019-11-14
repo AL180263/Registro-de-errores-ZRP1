@@ -7,7 +7,7 @@
         xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Background="{DynamicResource MaterialDesignPaper}"
-        Title="Adicionar_Elementos" Height="650" Width="1200" PreviewKeyUp="Window_PreviewKeyUp">
+        Title="Adicionar_Elementos" Height="650" Width="1200" PreviewKeyUp="Window_PreviewKeyUp" Initialized="Window_Initialized">
     <Grid>
         <DockPanel>
             <MaterialDesign:ColorZone Name="Dock" DockPanel.Dock="Top" Mode="PrimaryDark" Height="60" Padding="5">
@@ -32,15 +32,16 @@
                 <MaterialDesign:Card Grid.Column="0" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="20">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="0.23*"/>
-                            <RowDefinition Height="0.6*"/>
+                            <RowDefinition Height="0.15*"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="0.35*"/>
+                            <RowDefinition Height="0.7*"/>
+                            <RowDefinition Height="0.3*"/>
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Editar Usuario" Foreground="{DynamicResource PrimaryHueDarkBrush}" Style="{StaticResource MaterialDesignTitleTextBlock}" Height="30" />
                         <Separator Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"  Style="{StaticResource MaterialDesignDarkSeparator}"/>
                         <Grid Grid.Row="1">
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
@@ -52,11 +53,13 @@
 
                             <TextBox Grid.Row="0" Grid.Column="1" Name="UsuarioNombretxt" Margin="10,0,70,0" FontSize="16" MaterialDesign:HintAssist.Hint="Nombre del Usuario" MaterialDesign:HintAssist.IsFloating="True" Foreground="DarkGray"/>
                             <TextBox Grid.Row="1" Grid.Column="1" Name="UsuarioUserNametxt" Margin="10,0,175,0" FontSize="16" MaterialDesign:HintAssist.Hint="UserName" MaterialDesign:HintAssist.IsFloating="True" Foreground="DarkGray"/>
-                            <ComboBox Grid.Row="2" Grid.Column="1" Name="UsuarioPermisoCombo" Margin="10,0,70,0" FontSize="14" MaterialDesign:HintAssist.Hint="Permiso" MaterialDesign:HintAssist.IsFloating="True" IsEditable="True" Foreground="DarkGray"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Name="usuarioRelojtxt"  Margin="10,0,175,0" FontSize="16" MaterialDesign:HintAssist.Hint="Reloj" MaterialDesign:HintAssist.IsFloating="True" Foreground="DarkGray" />
+                            <ComboBox Grid.Row="3" Grid.Column="1" Name="UsuarioPermisoCombo" Margin="10,0,70,0" FontSize="14" MaterialDesign:HintAssist.Hint="Permiso" MaterialDesign:HintAssist.IsFloating="True" IsEditable="True" Foreground="DarkGray"/>
                             
-                            <MaterialDesign:PackIcon Grid.Row="0" Grid.Column="0" Kind="User" VerticalAlignment="Center" HorizontalAlignment="Center" Height="30" Width="30" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
-                            <MaterialDesign:PackIcon Grid.Row="1" Grid.Column="0" Kind="UserCardDetails" VerticalAlignment="Center" HorizontalAlignment="Center" Height="30" Width="30" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
-                            <MaterialDesign:PackIcon Grid.Row="2" Grid.Column="0" Kind="SecurityLock" VerticalAlignment="Center" HorizontalAlignment="Center" Height="30" Width="30" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                            <MaterialDesign:PackIcon Grid.Row="0" Grid.Column="0" Kind="User" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="30" Width="30" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                            <MaterialDesign:PackIcon Grid.Row="1" Grid.Column="0" Kind="UserCardDetails" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="30" Width="30" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                            <MaterialDesign:PackIcon Grid.Row="2" Grid.Column="0" Kind="AvTimer" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="30" Width="30" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                            <MaterialDesign:PackIcon Grid.Row="3" Grid.Column="0" Kind="SecurityLock" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="30" Width="30" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                         </Grid>
                         
                         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
@@ -64,8 +67,10 @@
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="Usuario" DisplayMemberBinding="{Binding UserName}"/>
-                                        <GridViewColumn Header="Nombre" DisplayMemberBinding="{Binding Nombre}" Width="200"/>
-                                        <GridViewColumn Header="Permiso" DisplayMemberBinding="{Binding Permiso}" Width="100"/>
+                                        <GridViewColumn Header="Nombre" DisplayMemberBinding="{Binding Nombre}" Width="165"/>
+                                        <GridViewColumn Header="No Reloj" DisplayMemberBinding="{Binding Reloj}"/>
+                                        <GridViewColumn Header="Accesos" DisplayMemberBinding="{Binding Acceso}" Width="90"/>
+                                        
                                     </GridView>
                                 </ListView.View>
                             </ListView>
@@ -97,12 +102,12 @@
                 <MaterialDesign:Card Grid.Column="1" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="20">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="0.23*"/>
+                            <RowDefinition Height="0.15*"/>
                             <RowDefinition Height="0.5*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="0.35*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Editar problemas" Foreground="{DynamicResource PrimaryHueDarkBrush}" Style="{StaticResource MaterialDesignTitleTextBlock}" Height="30" />
+                        <TextBlock Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Imagen de perfil" Foreground="{DynamicResource PrimaryHueDarkBrush}" Style="{StaticResource MaterialDesignTitleTextBlock}" Height="30" />
                         <Separator Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"  Style="{StaticResource MaterialDesignDarkSeparator}"/>
                         <Grid Grid.Row="1">
                             <Grid.RowDefinitions>
@@ -115,20 +120,8 @@
                                 <ColumnDefinition Width="0.2*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-
-                            <MaterialDesign:PackIcon Grid.Row="1" Grid.Column="0" Kind="ReportProblem" VerticalAlignment="Bottom" HorizontalAlignment="Center" Width="30" Height="30"  Foreground="Yellow"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Name="ProblemasTextBox" MaterialDesign:HintAssist.Hint="Nuevo reporte de problema" MaterialDesign:HintAssist.IsFloating="True" FontSize="16" Foreground="DarkGray" Margin="10,0,25,0"/>
                         </Grid>
-                        <ScrollViewer Grid.Row="2">
-                            <ListView MouseDoubleClick="ProblemasListView_MouseDoubleClick_1" ToolTip="Doble Click! para Editar un problema" Name="ProblemasListView">
-                                <ListView.View>
-                                    <GridView>
-                                        <GridViewColumn Header="Problema" Width="Auto" DisplayMemberBinding="{Binding Error}"/>
-                                        
-                                    </GridView>
-                                </ListView.View>
-                            </ListView>
-                        </ScrollViewer>
+                        <ScrollViewer Grid.Row="2"/>
                         <Grid Grid.Row="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -136,14 +129,14 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Click="DeletePoblem_Click" Name="DeletePoblem" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Eliminar Elemento Seleccionado" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
+                            <Button Grid.Column="0" Click="DeleteProfileImage_Click" Name="DeleteProfileImage" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Eliminar Imagen" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
                                 <MaterialDesign:PackIcon Kind="Delete" Height="30" Width="30"/>
                             </Button>
                            
-                            <Button Name="GuardarProblem" Click="GuardarProblem_Click" Grid.Column="1" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Actualizar elemento" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
+                            <Button Name="GuardarImageProfile" Click="GuardarImageProfile_Click" Grid.Column="1" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Actualizar Imagen" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
                                 <MaterialDesign:PackIcon Kind="ContentSave" Height="30" Width="30"/>
                             </Button>
-                            <Button Name="AgregarProblema"  Click="AgregarProblema_Click" Grid.Column="2" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Agregar un nuevo elemento" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
+                            <Button Name="CambiarImageProfile"  Click="CambiarImageProfile_Click" Grid.Column="2" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Agregar una imagen" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
                                 <MaterialDesign:PackIcon Kind="Add" Height="30" Width="30"/>
                             </Button>
                         </Grid>
@@ -151,65 +144,7 @@
                     </Grid>
                 </MaterialDesign:Card>
 
-                <MaterialDesign:Card Grid.Column="2" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="20">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="0.23*"/>
-                            <RowDefinition Height="0.5*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="0.35*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" HorizontalAlignment="Center" Text="Editar Departamentos" Foreground="{DynamicResource PrimaryHueDarkBrush}" Style="{StaticResource MaterialDesignTitleTextBlock}" Height="30" />
-                        <Separator Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"  Style="{StaticResource MaterialDesignDarkSeparator}"/>
-                        <Grid Grid.Row="1">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="1.3*"/>
-                                <RowDefinition Height="*"/>
-
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="0.2*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <MaterialDesign:PackIcon Grid.Row="1" Grid.Column="0" Kind="Worker" Height="30" Width="30" VerticalAlignment="Bottom" HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
-                            <TextBox Name="DepartamentosTexbox" Grid.Row="1" Grid.Column="1" MaterialDesign:HintAssist.Hint="Departamentos" MaterialDesign:HintAssist.IsFloating="True" FontSize="16" Foreground="DarkGray" Margin="10,0,0,0" />
-                        </Grid>
-                        <ScrollViewer Grid.Row="2">
-                            <ListView Name="DepartamentosListview" MouseDoubleClick="DepartamentosListview_MouseDoubleClick">
-                                <ListView.View>
-                                    <GridView>
-                                        <GridViewColumn Header="Departamentos" Width="Auto" DisplayMemberBinding="{Binding DepartamentosResponsables}"/>
-                                      
-                                    </GridView>
-                                </ListView.View>
-                            </ListView>
-                        </ScrollViewer>
-                        <Grid Grid.Row="3">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                              
-                            </Grid.ColumnDefinitions>
-                            <Button Name="DepartamentosDelete" Click="DepartamentosDelete_Click" Grid.Column="0" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Eliminar Elemento Seleccionado" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
-                                <MaterialDesign:PackIcon Kind="Delete" Height="30" Width="30"/>
-                            </Button>
-                            <Button Name="DepartamentosGuardar" Click="DepartamentosGuardar_Click" Grid.Column="1" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Actualizar elemento" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
-                                <MaterialDesign:PackIcon Kind="ContentSave" Height="30" Width="30"/>
-                            </Button>
-                            <Button Name="DepartamentosAgregar" Click="DepartamentosAgregar_Click" Grid.Column="2" MaterialDesign:ShadowAssist.ShadowDepth="Depth5" ToolTip="Agregar un nuevo elemento" VerticalAlignment="Center" Style="{StaticResource MaterialDesignFloatingActionDarkButton}">
-                                <MaterialDesign:PackIcon Kind="Add" Height="30" Width="30"/>
-                            </Button>
-                        </Grid>
-                        <MaterialDesign:Snackbar Name="DepartamentosSnackbar"  Background="{Binding ElementName=ChipUsuario,Path=Background}" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" Grid.Row="3" HorizontalAlignment="Center"  Opacity="0.9"  FontSize="14"/>
-                    </Grid>
-                </MaterialDesign:Card>
-
-                <MaterialDesign:PackIcon Name="WifiEstatus" Grid.Row="1" Grid.Column="2" Kind="Wifi" VerticalAlignment="Center" HorizontalAlignment="Right" Height="30" Width="30" Foreground="Red" Margin="0,0,10,0"/>
-
-                <MaterialDesign:Snackbar Name="WifiSnackbar" Grid.Column="1"  Background="{Binding ElementName=ChipUsuario,Path=Background}" Foreground="{Binding ElementName=ComboBoxColores, Path=Foreground}" Grid.Row="3" HorizontalAlignment="Center"   FontSize="14"/>
+              
 
             </Grid>
         </DockPanel>

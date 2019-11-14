@@ -8,6 +8,7 @@ using Registro_de_errores_ZRP1.Properties;
 using Excel = Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
+using Entities;
 
 namespace Registro_de_errores_ZRP1
 {
@@ -21,29 +22,24 @@ namespace Registro_de_errores_ZRP1
 
        
 
-        public static void GenerarPdf(Problemas Reporte, CoreDataBaseAccess Database)
+        public static void GenerarPdf(Reporte Reporte)
         {
             FolderBrowserDialog folder = new FolderBrowserDialog();
 
             if ( DialogResult.Cancel != folder.ShowDialog())
             {
-                string path = string.Format("{0}\\{1}", folder.SelectedPath, string.Format("{0}_{1}_{2}.pdf", Reporte.HashCode, Reporte.Departamento, "REPORTE_DE_ERROR_ZRP1"));
+                string path = string.Format("{0}\\{1}", folder.SelectedPath, string.Format("{0}_{1}_{2}.pdf", Reporte.Hash, Reporte.Departamento.ToString(), "REPORTE_DE_ERROR_ZRP1"));
 
                 document = new Document(PageSize.LETTER);
 
                 gen = PdfWriter.GetInstance(document, new System.IO.FileStream(path, System.IO.FileMode.Create));
                 Font FuenteTitulos = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
                 Font FuenteNormal = new Font(Font.FontFamily.HELVETICA, 16, Font.NORMAL);
-                if (Database.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result.Count > 1)
-                {
-                    document.AddAuthor(Database.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result[0].ToString());
-                }
-                else
-                {
-                    document.AddAuthor("Desconocido");
-                }
                
-                document.AddTitle(Reporte.Problema);
+                    document.AddAuthor(Reporte.Usuario.Nombre);
+               
+               
+                document.AddTitle(Reporte.Incidente);
 
                 document.Open();
 
@@ -53,7 +49,7 @@ namespace Registro_de_errores_ZRP1
                 float porcentaje = 150 / logo.Width;
                 logo.ScalePercent(porcentaje * 100);
 
-                Image code = GenerarBarcode(Reporte.HashCode.ToString(),true);
+                Image code = GenerarBarcode(Reporte.Hash.ToString(),true);
                 code.Alignment = Element.ALIGN_RIGHT;
                 code.BorderWidth = 0;
                 float scalado = (135 / code.Width) * 100;
@@ -65,19 +61,14 @@ namespace Registro_de_errores_ZRP1
                 document.Add(new Paragraph(string.Format("Reporte de problema ZRP1 {0}{1}", "".PadRight(25), Reporte.Fecha.ToString("d / MMMM / yyyy", CultureInfo.CreateSpecificCulture("es-MX"))), new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD)));
                 document.Add(Chunk.NEWLINE);
                 var d = new Paragraph("Clerck  : ", FuenteTitulos);
-                if (Database.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result.Count > 0)
-                {
-                    d.AddSpecial(new Phrase(string.Format("({0}) {1}", Reporte.Usuario, Database.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Reporte.Usuario)).Result[0]), FuenteNormal));
-                }
-                else
-                {
-                    d.AddSpecial(new Phrase("Desconocido",FuenteNormal));
-                }
+                
+                    d.AddSpecial(new Phrase(string.Format("({0}) {1}", Reporte.Usuario.UserName, Reporte.Usuario.Nombre), FuenteNormal));
+                
                 
                 document.Add(d);
                 document.Add(Chunk.NEWLINE);
                 Paragraph a = new Paragraph("Estado : ", FuenteTitulos);
-                a.AddSpecial(new Phrase(Reporte.EstatusString, FuenteNormal));
+                a.AddSpecial(new Phrase(Reporte.Estatus.ToString(), FuenteNormal));
                 document.Add(a);
                 document.Add(Chunk.NEWLINE);
                 var i = new Paragraph("Hora : ", FuenteTitulos);
@@ -85,20 +76,20 @@ namespace Registro_de_errores_ZRP1
                 document.Add(i);
                 document.Add(Chunk.NEWLINE);
                 var j = new Paragraph("Turno : ", FuenteTitulos);
-                j.AddSpecial(new Phrase(Reporte.Turno, FuenteNormal));
+                j.AddSpecial(new Phrase(Reporte.Turno.ToString(), FuenteNormal));
                 document.Add(j);
                
                 document.Add(Chunk.NEWLINE);
 
 
                 var b = new Paragraph("Problema : ", FuenteTitulos);
-                b.AddSpecial(new Phrase(Reporte.Problema, FuenteNormal));
+                b.AddSpecial(new Phrase(Reporte.Incidente, FuenteNormal));
                 document.Add(b);
                 document.Add(Chunk.NEWLINE);
 
 
                 var c = new Paragraph("Departamentos del problema : ", FuenteTitulos);
-                c.AddSpecial(new Phrase(Reporte.Departamento, FuenteNormal));
+                c.AddSpecial(new Phrase(Reporte.Departamento.ToString(), FuenteNormal));
                 document.Add(c);
                 document.Add(Chunk.NEWLINE);
                
@@ -121,17 +112,17 @@ namespace Registro_de_errores_ZRP1
                 document.Add(f);
                 document.Add(Chunk.NEWLINE);
                 var g = new Paragraph("HU : ", FuenteTitulos);
-                g.AddSpecial( new Phrase(Reporte.HU, FuenteNormal));
-                if (!string.IsNullOrEmpty(Reporte.HU))
+                g.AddSpecial( new Phrase(Reporte.Hu, FuenteNormal));
+                if (!string.IsNullOrEmpty(Reporte.Hu))
                 {
-                    g.Add(new Chunk(GenerarBarcode(Reporte.HU,false), 10, -7));
+                    g.Add(new Chunk(GenerarBarcode(Reporte.Hu,false), 10, -7));
                 }
                 document.Add(g);
                 document.Add(Chunk.NEWLINE);
               
                 var h = new Paragraph("Informacion adicional : ", FuenteTitulos);
                 h.Add(Chunk.NEWLINE);
-                h.AddSpecial(new Phrase(Reporte.Informacion_Extra, FuenteNormal));
+                h.AddSpecial(new Phrase(Reporte.Descripcion, FuenteNormal));
                 document.Add(h);
                 document.Add(Chunk.NEWLINE);
 
@@ -182,7 +173,9 @@ namespace Registro_de_errores_ZRP1
 
 
             }
+#pragma warning disable CS0168 // La variable 'Error' se ha declarado pero nunca se usa
             catch (Exception Error)
+#pragma warning restore CS0168 // La variable 'Error' se ha declarado pero nunca se usa
             {
 
                

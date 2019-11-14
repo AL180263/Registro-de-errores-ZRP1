@@ -11,10 +11,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using ConsultaCore;
-using Registro_de_errores_ZRP1.Tablas;
+using Entities;
+using Registro_de_errores_ZRP1.Database_Context;
 using MaterialDesignThemes.Wpf;
-using System.Net.NetworkInformation;
 
 namespace Registro_de_errores_ZRP1.Controles
 {
@@ -23,48 +22,67 @@ namespace Registro_de_errores_ZRP1.Controles
     /// </summary>
     public partial class Adicionar_Elementos : Window, IDisposable
     {
-        CoreDataBaseAccess AdministradorDb = new CoreDataBaseAccess();
 
-        private bool IsConected = false;
+        private ConexionDB db;
 
-        public Adicionar_Elementos()
+
+        public Adicionar_Elementos(ConexionDB conexion = null)
         {
             InitializeComponent();
+
 
             SnackbarMessageQueue messageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1000));
             UsuarioSnackbar.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1000));
             ProblemasSnackbar.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1000));
-            DepartamentosSnackbar.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1000));
-            WifiSnackbar.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1000));
-            UsuarioPermisoCombo.ItemsSource = new List<string>() { "ADMINISTRADOR", "INTERMEDIO", "USUARIO" };
-
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.CadenaDeConexion))
+            UsuarioPermisoCombo.ItemsSource = Enum.GetValues(typeof(Access));
+            try
             {
-                AdministradorDb.CadenaDeConexion = Properties.Settings.Default.CadenaDeConexion;
+                if (conexion != null)
+                {
+                    db = conexion;
+                }
+                else
+                {
+                    db = new ConexionDB();
+                }
+               
             }
-
-            if (!(AdministradorDb.Estado == Estados.SinCadenaDeConexion || AdministradorDb.Estado == Estados.Operacion_Fallida))
+            catch (Exception Error)
             {
-                ActualizarAsync();
+                new LogManager(Error);
+               
             }
-
+       
         }
+
+        
 
         #region Usuarios
 
-        private void DeleteUsuario_Click(object sender, RoutedEventArgs e)
+        private async void DeleteUsuario_Click(object sender, RoutedEventArgs e)
         {
-            if (WifiAvaible())
-            {
+           
                 if (UsuariosListView.SelectedItem != null)
                 {
-                    AdministradorDb.DeleteAsync(UsuariosListView.SelectedItem as Usuarios);
+                try
+                {
+                    db.Usuarios.Remove(UsuariosListView.SelectedItem as Usuario);
+                    await db.SaveChangesAsync();
+
+                    await ActualizarAsync();
+                    Clear();
+                }
+                catch (Exception Error)
+                {
+
+                    new LogManager(Error);
+                }
                 }
                 else
                 {
                     UsuarioSnackbar.MessageQueue.Enqueue("Seleccione un Item para eliminar");
                 }
-            }
+           
            
         }
 
@@ -73,9 +91,11 @@ namespace Registro_de_errores_ZRP1.Controles
 
             if (UsuariosListView.SelectedItem != null)
             {
-                UsuarioNombretxt.Text = (UsuariosListView.SelectedItem as Usuarios).Nombre;
-                UsuarioUserNametxt.Text = (UsuariosListView.SelectedItem as Usuarios).UserName;
-                UsuarioPermisoCombo.Text = (UsuariosListView.SelectedItem as Usuarios).Permiso;
+                UsuarioNombretxt.Text = (UsuariosListView.SelectedItem as Usuario).Nombre;
+                UsuarioUserNametxt.Text = (UsuariosListView.SelectedItem as Usuario).UserName;
+                UsuarioUserNametxt.IsEnabled = false;
+                UsuarioPermisoCombo.Text = (UsuariosListView.SelectedItem as Usuario).Acceso.ToString();
+                usuarioRelojtxt.Text = (UsuariosListView.SelectedItem as Usuario).Reloj;
             }
             else
             {
@@ -84,13 +104,12 @@ namespace Registro_de_errores_ZRP1.Controles
 
         }
 
-        private void GuardarUsuario_Click(object sender, RoutedEventArgs e)
+        private async void GuardarUsuario_Click(object sender, RoutedEventArgs e)
         {
-            if (WifiAvaible())
-            {
+            
                 if (UsuariosListView.SelectedItem != null)
                 {
-                    Usuarios temp = new Usuarios();
+                Usuario temp = UsuariosListView.SelectedItem as Usuario;
 
                     if (!string.IsNullOrEmpty(UsuarioNombretxt.Text))
                     {
@@ -102,19 +121,30 @@ namespace Registro_de_errores_ZRP1.Controles
                         UsuarioNombretxt.Focus();
                         return;
                     }
-                    if (!string.IsNullOrEmpty(UsuarioUserNametxt.Text))
-                    {
-                        temp.UserName = UsuarioUserNametxt.Text;
-                    }
-                    else
-                    {
-                        UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"UserName\" no puede esta vacio");
-                        UsuarioUserNametxt.Focus();
-                        return;
-                    }
+                    //if (!string.IsNullOrEmpty(UsuarioUserNametxt.Text))
+                    //{
+                    //temp.UserName = UsuarioUserNametxt.Text.ToUpperInvariant();
+                    //}
+                    //else
+                    //{
+                    //    UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"UserName\" no puede esta vacio");
+                    //    UsuarioUserNametxt.Focus();
+                    //    return;
+                    //}
+                if (!string.IsNullOrEmpty(usuarioRelojtxt.Text) && usuarioRelojtxt.Text.Length == 6)
+                {
+                    temp.Reloj = usuarioRelojtxt.Text;
+                }
+                else
+                {
+                    UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"Reloj\" no puede esta vacio");
+                    usuarioRelojtxt.Focus();
+                    return;
+                }
                     if (UsuarioPermisoCombo.SelectedItem != null)
                     {
-                        temp.Permiso = UsuarioPermisoCombo.SelectedItem as string;
+                  
+                    temp.Acceso = (Access)UsuarioPermisoCombo.SelectedItem;
                     }
                     else
                     {
@@ -123,9 +153,19 @@ namespace Registro_de_errores_ZRP1.Controles
                         return;
                     }
 
-                    AdministradorDb.UpdateAsyn(UsuariosListView.SelectedItem as Usuarios, temp);
-                    ActualizarAsync();
+                try
+                {
+                    await db.SaveChangesAsync();
                     Clear();
+                   await  ActualizarAsync();
+                }
+                catch (Exception Error)
+                {
+
+                    new LogManager(Error);
+                }
+                   
+                   
                 }
                 else
                 {
@@ -133,55 +173,74 @@ namespace Registro_de_errores_ZRP1.Controles
 
                     return;
                 }
-            }
+           
           
 
         }
 
-        private void AdicionarNuevoUsuario_Click(object sender, RoutedEventArgs e)
+        private async void AdicionarNuevoUsuario_Click(object sender, RoutedEventArgs e)
         {
-            Usuarios temp = new Usuarios();
+            Usuario temp = new Usuario();
 
-            if (WifiAvaible())
+
+            if (!string.IsNullOrEmpty(UsuarioNombretxt.Text))
             {
-                if (!string.IsNullOrEmpty(UsuarioNombretxt.Text))
-                {
-                    temp.Nombre = UsuarioNombretxt.Text;
-                }
-                else
-                {
-                    UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"Nombre\" no puede esta vacio");
-                    UsuarioNombretxt.Focus();
-                    return;
-                }
-                if (!string.IsNullOrEmpty(UsuarioUserNametxt.Text))
-                {
-                    temp.UserName = UsuarioUserNametxt.Text;
-                }
-                else
-                {
-                    UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"UserName\" no puede esta vacio");
-                    UsuarioUserNametxt.Focus();
-                    return;
-                }
-                if (UsuarioPermisoCombo.SelectedItem != null)
-                {
-                    temp.Permiso = UsuarioPermisoCombo.SelectedItem as string;
-                }
-                else
-                {
-                    UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"Permiso\" no puede esta vacio");
-                    UsuarioPermisoCombo.Focus();
-                    return;
-                }
+                temp.Nombre = UsuarioNombretxt.Text;
+            }
+            else
+            {
+                UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"Nombre\" no puede esta vacio");
+                UsuarioNombretxt.Focus();
+                return;
+            }
+            if (!string.IsNullOrEmpty(UsuarioUserNametxt.Text))
+            {
+                temp.UserName = UsuarioUserNametxt.Text;
+            }
+            else
+            {
+                UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"UserName\" no puede esta vacio");
+                UsuarioUserNametxt.Focus();
+                return;
+            }
+            if (!string.IsNullOrEmpty(usuarioRelojtxt.Text) && usuarioRelojtxt.Text.Length == 6)
+            {
+                temp.Reloj = usuarioRelojtxt.Text;
+            }
+            else
+            {
+                UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"Reloj\" no puede esta vacio");
+                usuarioRelojtxt.Focus();
+                return;
+            }
+            if (UsuarioPermisoCombo.SelectedItem != null)
+            {
+                temp.Acceso = (Access)UsuarioPermisoCombo.SelectedItem;
+            }
+            else
+            {
+                UsuarioSnackbar.MessageQueue.Enqueue("El Campo \"Permiso\" no puede esta vacio");
+                UsuarioPermisoCombo.Focus();
+                return;
+            }
 
-                AdministradorDb.InsertarAsync(temp);
-                ActualizarAsync();
+            try
+            {
+                db.Usuarios.Add(temp);
+                await db.SaveChangesAsync();
+                await  ActualizarAsync();
                 Clear();
             }
-           
+            catch (Exception Error)
+            {
+
+                new LogManager(Error);
+            }
+                
+
+        }
         
-    }
+    
 
         
 
@@ -197,333 +256,50 @@ namespace Registro_de_errores_ZRP1.Controles
             }
         }
 
-        private async void ActualizarAsync()
+        private async Task ActualizarAsync()
         {
-            if (WifiAvaible())
-            {
-                UsuariosListView.ItemsSource = await AdministradorDb.ReadAsync<Usuarios>();
-                ProblemasListView.ItemsSource = await AdministradorDb.ReadAsync<Errores>();
-                DepartamentosListview.ItemsSource = await AdministradorDb.ReadAsync<Departamentos>();
-            }
            
+            await Task.Run(() =>
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        UsuariosListView.ItemsSource = db.Usuarios.ToList();
+                    }
+                    catch (Exception Error)
+                    {
+
+                        new LogManager(Error);
+                    }
+                });
+            });
+
         }
 
         private void Clear()
         {
             UsuarioNombretxt.Clear();
             UsuarioUserNametxt.Clear();
+            UsuarioUserNametxt.IsEnabled = true;
             UsuarioPermisoCombo.SelectedItem = null;
             UsuariosListView.SelectedItem = null;
-            ProblemasListView.SelectedItem = null;
-            ProblemasTextBox.Clear();
-            DepartamentosListview.SelectedItem = null;
-            DepartamentosTexbox.Clear();
+            usuarioRelojtxt.Clear();
+         
         }
 
-        private void Actualizar_Click(object sender, RoutedEventArgs e)
+        private async void Actualizar_Click(object sender, RoutedEventArgs e)
         {
-            if (WifiAvaible())
-            {
-                try
-                {
-                    ActualizarAsync();
-                }
-                catch (Exception Error)
-                {
-                    new Log(Error.ToString() + Environment.NewLine + Error.Message);
-
-                }
-            }
-           
-           
+                await ActualizarAsync();
         }
 
-        private async void WifiAvaible(bool Isconected)
-        {
+       
 
-
-
-
-
-
-
-            if (Isconected)
-            {
-
-                Ping ping = new Ping();
-
-                try
-                {
-                    PingReply reply = await ping.SendPingAsync("www.google.com");
-
-                    if (reply.Status == IPStatus.Success)
-                    {
-                        IsConected = true;
-                        WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Green; });
-                        WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conectado a la red"; });
-                    }
-                    else
-                    {
-                        IsConected = false;
-                        WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Red; });
-                        WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conexion no disponible!"; });
-                    }
-                }
-                catch (Exception Error)
-                {
-
-                    new Log(Error.ToString());
-                    IsConected = false;
-
-                }
-
-
-
-
-
-
-
-
-            }
-            else
-            {
-                IsConected = false;
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Red; });
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conexion no disponible!"; });
-
-            }
-
-
-
-
-        }
-
-        private bool WifiAvaible()
-        {
-
-
-            if (NetworkInterface.GetIsNetworkAvailable())
-            {
-                IsConected = true;
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Green; });
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conectado a la red"; });
-                return true;
-            }
-            else
-            {
-                IsConected = false;
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Red; });
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conexion no disponible!"; });
-                WifiSnackbar.Dispatcher.Invoke(() => { WifiSnackbar.MessageQueue.Enqueue("Sin conexion a Internet, imposible realizar la operacion"); });
-                return false;
-            }
-        }
 
 
         #endregion
 
-        #region Problemas
-
-        private void ProblemasListView_MouseDoubleClick_1(object sender, MouseButtonEventArgs e)
-        {
-           
-                if (ProblemasListView.SelectedItem != null)
-                {
-                    ProblemasTextBox.Text = (ProblemasListView.SelectedItem as Errores).Error;
-                }
-                else
-                {
-                    ProblemasSnackbar.MessageQueue.Enqueue("No se tiene ningun item previamente seleccionado");
-                }
-            
-           
-        }
-
-        private void GuardarProblem_Click(object sender, RoutedEventArgs e)
-        {
-            Errores errores = new Errores();
-            if (WifiAvaible())
-            {
-                if (ProblemasListView.SelectedItem != null)
-                {
-                    if (!string.IsNullOrEmpty(ProblemasTextBox.Text))
-                    {
-                        errores.Error = ProblemasTextBox.Text;
-
-                        AdministradorDb.UpdateAsyn(ProblemasListView.SelectedItem as Errores, errores);
-                        if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
-                        {
-                            Clear();
-                            ActualizarAsync();
-                        }
-                        else
-                        {
-                            ProblemasSnackbar.MessageQueue.Enqueue("Ah ocurrido un error, no se ha podido registrar");
-                        }
-
-
-                    }
-                    else
-                    {
-                        ProblemasSnackbar.MessageQueue.Enqueue("El campo Problemas no puede estar vacio");
-                        ProblemasTextBox.Focus();
-                    }
-
-                }
-                else
-                {
-                    ProblemasSnackbar.MessageQueue.Enqueue("No se ha seleccionado un item!");
-                    ProblemasListView.Focus();
-                }
-
-            }
-
-
-        }
-
-        private void AgregarProblema_Click(object sender, RoutedEventArgs e)
-        {
-            if (WifiAvaible())
-            {
-                if (!string.IsNullOrEmpty(ProblemasTextBox.Text))
-                {
-                    AdministradorDb.InsertarAsync(new Errores() { Error = ProblemasTextBox.Text });
-                    if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
-                    {
-                        ActualizarAsync();
-                        Clear();
-                    }
-                    else
-                    {
-                        ProblemasSnackbar.MessageQueue.Enqueue("Ha ocurrido un error no se puede actualizar");
-                    }
-
-                }
-                else
-                {
-                    ProblemasSnackbar.MessageQueue.Enqueue("El campo Problemas no puede estar vacio");
-                    ProblemasTextBox.Focus();
-                }
-            }
-           
-        }
-
-        private void DeletePoblem_Click(object sender, RoutedEventArgs e)
-        {
-            if (WifiAvaible())
-            {
-                if (ProblemasListView.SelectedItem != null)
-                {
-                    AdministradorDb.DeleteAsync(ProblemasListView.SelectedItem as Errores);
-                    Clear();
-                    ActualizarAsync();
-                }
-                else
-                {
-                    ProblemasSnackbar.MessageQueue.Enqueue("Ningun Item seleccionado para eliminiar!");
-                    ProblemasListView.Focus();
-                }
-            }
-          
-
-        }
-
-
-        #endregion
-
-        #region Departamentos
-
-        private void DepartamentosDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if (WifiAvaible())
-            {
-                if (DepartamentosListview.SelectedItem != null)
-                {
-                    AdministradorDb.DeleteAsync(DepartamentosListview.SelectedItem as Departamentos);
-                }
-                else
-                {
-                    DepartamentosSnackbar.MessageQueue.Enqueue("No se selecciono ningun item para eliminar");
-                }
-            }
-          
-        }
-
-        private void DepartamentosGuardar_Click(object sender, RoutedEventArgs e)
-        {
-            if (WifiAvaible())
-            {
-                if (DepartamentosListview.SelectedItem != null)
-                {
-                    if (!string.IsNullOrEmpty(DepartamentosTexbox.Text))
-                    {
-
-                        AdministradorDb.UpdateAsyn((DepartamentosListview.SelectedItem as Departamentos), new Departamentos() { DepartamentosResponsables = DepartamentosTexbox.Text });
-                        if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
-                        {
-                            Clear();
-                            ActualizarAsync();
-                        }
-                        else
-                        {
-                            DepartamentosSnackbar.MessageQueue.Enqueue("Ah ocurrido un error, no se ha podido actualizar el item!");
-                        }
-    ;
-                    }
-                    else
-                    {
-                        DepartamentosSnackbar.MessageQueue.Enqueue("El campo departamento no puede estar vacio!");
-                        DepartamentosTexbox.Focus();
-                    }
-
-                }
-                else
-                {
-                    DepartamentosSnackbar.MessageQueue.Enqueue("No se ha seleccionado ningun item");
-
-                }
-            }
-          
-        }
-
-        private void DepartamentosAgregar_Click(object sender, RoutedEventArgs e)
-        {
-            if (WifiAvaible())
-            {
-                if (!string.IsNullOrEmpty(DepartamentosTexbox.Text))
-                {
-                    AdministradorDb.InsertarAsync(new Departamentos() { DepartamentosResponsables = DepartamentosTexbox.Text });
-                    if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
-                    {
-                        Clear();
-                        ActualizarAsync();
-                    }
-                    else
-                    {
-                        DepartamentosSnackbar.MessageQueue.Enqueue("Ah ocurrido un error, no se ha registrado el elemento!");
-                    }
-                }
-                else
-                {
-                    DepartamentosSnackbar.MessageQueue.Enqueue("El campo Departamentos no puede esta vacio");
-                    DepartamentosTexbox.Focus();
-                }
-            }
-            
-
-        }
-
-        private void DepartamentosListview_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (DepartamentosListview.SelectedItem != null)
-            {
-                DepartamentosTexbox.Text = (DepartamentosListview.SelectedItem as Departamentos).DepartamentosResponsables;
-            }
-        }
-
-
-
-        #endregion
+      
 
         #region IDisposable Support
         private bool disposedValue = false; // Para detectar llamadas redundantes
@@ -534,7 +310,7 @@ namespace Registro_de_errores_ZRP1.Controles
             {
                 if (disposing)
                 {
-                    AdministradorDb.Dispose();
+                  
                 }
 
                 // TODO: libere los recursos no administrados (objetos no administrados) y reemplace el siguiente finalizador.
@@ -565,5 +341,24 @@ namespace Registro_de_errores_ZRP1.Controles
         }
         #endregion
 
+        private async void Window_Initialized(object sender, EventArgs e)
+        {
+            await ActualizarAsync();
+        }
+
+        private void DeleteProfileImage_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void GuardarImageProfile_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void CambiarImageProfile_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

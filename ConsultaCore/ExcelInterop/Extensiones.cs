@@ -43,6 +43,8 @@ namespace ConsultaCore
                 HeaderRange.Value = Header;
                 HeaderRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightBlue);
                 HeaderRange.Font.Bold = true;
+
+
                 
 
                 // DataCells
@@ -56,24 +58,24 @@ namespace ConsultaCore
                 Worksheet.get_Range((Microsoft.Office.Interop.Excel.Range)(Worksheet.Cells[2, 1]), (Microsoft.Office.Interop.Excel.Range)(Worksheet.Cells[RowsCount + 1, ColumnsCount])).Value = Cells;
 
                 // check fielpath
-                if (ExcelFilePath != null && ExcelFilePath != "")
-                {
-                    try
+                    if (ExcelFilePath != null && ExcelFilePath != "")
                     {
-                        Worksheet.SaveAs(ExcelFilePath);
-                        Excel.Quit();
+                        try
+                        {
+                            Worksheet.SaveAs(ExcelFilePath);
+                            Excel.Quit();
                      
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception("ExportToExcel: Excel file could not be saved! Check filepath.\n"
+                                + ex.Message);
+                        }
                     }
-                    catch (Exception ex)
+                    else    // no filepath is given
                     {
-                        throw new Exception("ExportToExcel: Excel file could not be saved! Check filepath.\n"
-                            + ex.Message);
+                        Excel.Visible = true;
                     }
-                }
-                else    // no filepath is given
-                {
-                    Excel.Visible = true;
-                }
             }
             catch (Exception ex)
             {

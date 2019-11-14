@@ -19,6 +19,9 @@ using System.Printing;
 using System.IO;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using Entities;
+using Registro_de_errores_ZRP1.Database_Context;
+using System.Data.Entity;
 
 namespace Registro_de_errores_ZRP1
 {
@@ -27,120 +30,87 @@ namespace Registro_de_errores_ZRP1
     /// </summary>
     public partial class MainWindow : Window, IDisposable
     {
-        public MainWindow()
+        public  MainWindow()
         {
             InitializeComponent();
 
+            LogManager.LogSuccessNotifyEvent += DialogHostExceptionNotify;
+            
+            ImpresoraSnackbar.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1500));
+
+            snackbarNormal.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(2000));
+
             try
             {
+                db = new ConexionDB();
 
-                Prueba prueba = new Prueba();
-
-                List<PropertyInfo> t = prueba.Propiedades;
-
-                string parte = prueba.Tabla;
-                
-
-                NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
-
-              
-
+                #pragma warning disable CS0612 // El tipo o el miembro están obsoletos
                 tema.SetLightDark(Settings.Default.IsOscuro);
-
-                if (!string.IsNullOrEmpty(Settings.Default.CadenaDeConexion))
-                {
-                    AdministradorDb.CadenaDeConexion = Settings.Default.CadenaDeConexion;
-                
-                    IconoDatabase.Foreground = System.Windows.Media.Brushes.Green;
-                    IconoDatabase.ToolTip = Settings.Default.CadenaDeConexion;
-
-                }
-                else
-                {
-                   
-                    IconoDatabase.Foreground = System.Windows.Media.Brushes.Red;
-                    IconoDatabase.ToolTip = "No se ha especificado una cadena de conexion";
-                }
-                Actualizar();
-
-                ImpresoraSnackbar.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(1500));
-
-                HoraMargen.Text = DateTime.Now.ToString("dd/MM/yyyy");
-
-                if (AdministradorDb.Conectar())
-                {
-                    if (AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Environment.UserName.ToUpper())).Result.Count > 0)
-                    {
-                        ConcurrentUsuario = AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Environment.UserName.ToLowerInvariant())).Result[0];
-                        ChipUsuario.Content = ConcurrentUsuario.Nombre;
-                    }
-                    else
-                    {
-                        ConcurrentUsuario.PermisoEnum = PERMISO.Usuario;
-                        ChipUsuario.Content = Environment.UserName.ToUpperInvariant();
-                    }
-                   
-                }
-                else
-                {
-                    ChipUsuario.Content = Environment.UserName.ToUpperInvariant();
-                    ConcurrentUsuario.PermisoEnum = PERMISO.Usuario;
-                }
-
-                snackbarNormal.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(2000));
-
+                #pragma warning restore CS0612 // El tipo o el miembro están obsoletos
                 #region Seleccionar elementos de los combos
+                //Establecemos seleccion de las impresoras.
                 ComboBoxImpresoras.SelectionChanged -= ComboBoxImpresoras_SelectionChanged;
                 ComboBoxImpresoras.SelectedItem = Settings.Default.ImpresoraDefault;
                 ImpresorasCombo.SelectedItem = Settings.Default.ImpresoraDefault;
                 ComboBoxImpresoras.SelectionChanged += ComboBoxImpresoras_SelectionChanged;
 
-                ComboBoxProviders.SelectionChanged -= ComboBoxProviders_SelectionChanged;
-                ComboBoxProviders.SelectedIndex = Settings.Default.Provedor;
-                ComboBoxProviders.SelectionChanged += ComboBoxProviders_SelectionChanged;
-
+             
+                ///Establecemos la seleccion de el tipo de Etiqueta.
                 ComboBoxEtiquetas.SelectionChanged -= ComboBoxEtiquetas_SelectionChanged;
                 ComboBoxEtiquetas.SelectedItem = Settings.Default.LabelKind;
                 ComboBoxEtiquetas.SelectionChanged += ComboBoxEtiquetas_SelectionChanged;
 
-                SwatchesProvider l = new SwatchesProvider();
-                ComboBoxColores.ItemsSource = l.Swatches.OrderBy(o => o.Name);
+                //Establecemos los colores de la aplicacion.
+                SwatchesProvider TemaApp = new SwatchesProvider();
+                ComboBoxColores.ItemsSource = TemaApp.Swatches.OrderBy(o => o.Name);
                 ComboBoxColores.SelectedIndex = Settings.Default.index;
                 button.IsChecked = Settings.Default.IsOscuro;
                 #endregion
-
+                new LogManager("Se instancion correctamente ConexionDB()");
 
             }
-            catch (Exception main)
+            catch (Exception Error)
             {
 
-                new Log(main.ToString());
+                new LogManager("Excepcion en MainWindow()",Error);
 
             }
-
-
-
         }
 
-     
+      
+
+        private void DialogHostExceptionNotify(LogEventArgs args)
+        {
+            if (args.Exception != null)
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    TextBlockInformacion.Text = args.Exception.Message;
+                    DialogHostMessage.IsOpen = true;
+                });
+               
+            }
+        }
+
+
+
+
 
         #region Variables
 
-        private List<Problemas> bufferError = new List<Problemas>();
+        private List<Reporte> bufferError = new List<Reporte>();
 
-        private Problemas context = new Problemas();
-
-        private Usuarios ConcurrentUsuario = new Usuarios() { PermisoEnum = PERMISO.Usuario };
+        private Reporte context = new Reporte();
 
         PaletteHelper tema = new PaletteHelper();
 
-        CoreDataBaseAccess AdministradorDb = new CoreDataBaseAccess();
+        ConexionDB db;
 
         List<string> rellenar = new List<string>();
 
-        public Problemas Old;
+        public Reporte Old;
 
-        public bool IsConected = false;
+       
 
         #endregion
 
@@ -150,14 +120,18 @@ namespace Registro_de_errores_ZRP1
         {
             if (button.IsChecked ?? false)
             {
+#pragma warning disable CS0612 // 'PaletteHelper.SetLightDark(bool)' está obsoleto
                 tema.SetLightDark(true);
+#pragma warning restore CS0612 // 'PaletteHelper.SetLightDark(bool)' está obsoleto
                 Settings.Default.IsOscuro = true;
                 Settings.Default.Save();
 
             }
             else
             {
+#pragma warning disable CS0612 // 'PaletteHelper.SetLightDark(bool)' está obsoleto
                 tema.SetLightDark(false);
+#pragma warning restore CS0612 // 'PaletteHelper.SetLightDark(bool)' está obsoleto
                 Settings.Default.IsOscuro = false;
                 Settings.Default.Save();
             }
@@ -172,172 +146,109 @@ namespace Registro_de_errores_ZRP1
                 {
                     Properties.Settings.Default.index = ComboBoxColores.SelectedIndex;
                     Properties.Settings.Default.Save();
+#pragma warning disable CS0612 // 'PaletteHelper.ReplacePrimaryColor(Swatch)' está obsoleto
                     tema.ReplacePrimaryColor(ComboBoxColores.SelectedItem as Swatch);
+#pragma warning restore CS0612 // 'PaletteHelper.ReplacePrimaryColor(Swatch)' está obsoleto
+                    
 
                 }
             }
             catch (Exception error)
             {
 
-                new Log(error.ToString() + Environment.NewLine + error.Message);
+                new LogManager("Excepcion en funcion P_SelectionChanged", error);
             }
 
            
 
         }
 
+        [Obsolete("Funcion Obsoleta",true)]
         private void ComboBoxProviders_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            try
-            {
-                if (ComboBoxProviders.SelectedItem != null)
-                {
-                    Settings.Default.Provedor = ComboBoxProviders.SelectedIndex;
-                    Settings.Default.Save();
-                    AdministradorDb.Provider = ComboBoxProviders.SelectedItem as string;
-                }
-            }
-            catch (Exception errores)
-            {
-
-                new Log(errores.ToString() + Environment.NewLine + errores.Message);
-                TextBlockInformacion.Text = errores.Message;
-                DialogHostMessage.IsOpen = true;
-            }
+           
 
         }
 
+        [Obsolete("Funcion obsoleta",true)]
         private void ButtonBuscarBaseDeDatos_Click(object sender, RoutedEventArgs e)
         {
-            using (OpenFileDialog db = new OpenFileDialog())
-            {
-                db.Filter = "Archivos de Bases de datos Access (*.accdb;*.mdb)|*.accdb;*.mdb";
-                db.DefaultExt = ".accdb";
-                db.Title = "Selecciona una base de datos con el formato correspondiente";
-                try
-                {
-                    db.ShowDialog();
-
-                    AdministradorDb.Provider = ComboBoxProviders.SelectedItem as string;
+            //using (OpenFileDialog db = new OpenFileDialog())
+            //{
+            //    db.Filter = "Archivos de Bases de datos Access (*.accdb;*.mdb)|*.accdb;*.mdb";
+            //    db.DefaultExt = ".accdb";
+            //    db.Title = "Selecciona una base de datos con el formato correspondiente";
+            //    try
+            //    {
+            //        db.ShowDialog();
 
                    
 
-                    if (!string.IsNullOrEmpty(db.FileName))
-                    {
+                   
+
+            //        if (!string.IsNullOrEmpty(db.FileName))
+            //        {
                        
                        
-                            AdministradorDb.PathDataBase = db.FileName;
-                        //if (ConcurrentUsuario.PermisoEnum == PERMISO.Programador)
-                        //{
-                        //    AdministradorDb.NormalizeDatabase(new Usuarios(), new Departamento(), new Problemas(), new Errores(), new Turnos(), new Lote());
-                        //}
+                           
+            //            //if (ConcurrentUsuario.PermisoEnum == PERMISO.Programador)
+            //            //{
+            //            //    AdministradorDb.NormalizeDatabase(new Usuarios(), new Departamento(), new Problemas(), new Errores(), new Turnos(), new Lote());
+            //            //}
                           
                        
                           
                            
                        
                        
-                    }
+            //        }
 
-                    if (AdministradorDb.Conectar())
-                    {
-
-
-                        Settings.Default.CadenaDeConexion = AdministradorDb.CadenaDeConexion;
-                        Settings.Default.Save();
-                        Settings.Default.Upgrade();
-                        Actualizar();
-                    }
+            //        if (AdministradorDb.Conectar())
+            //        {
 
 
-
-
-                }
-                catch (Exception Error1A)
-                {
-                    new Log(Error1A.ToString() + Environment.NewLine + Error1A.Message);
-                    TextBlockInformacion.Text = Error1A.Message;
-                    DialogHostMessage.IsOpen = true;
-
-                }
+            //            Settings.Default.CadenaDeConexion = AdministradorDb.CadenaDeConexion;
+            //            Settings.Default.Save();
+            //            Settings.Default.Upgrade();
+            //            UpdateAllAsync();
+            //        }
 
 
 
 
-            }
+            //    }
+            //    catch (Exception Error1A)
+            //    {
+            //        new Log(Error1A.ToString() + Environment.NewLine + Error1A.Message);
+            //        TextBlockInformacion.Text = Error1A.Message;
+            //        DialogHostMessage.IsOpen = true;
+
+            //    }
+
+
+
+
+            //}
 
         }
 
+        [Obsolete("Funcion obsoleta", true)]
         private void ButtonGenerarBaseDeDatos_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                if (ConcurrentUsuario.PermisoEnum == PERMISO.Administrador)
-                {
-                    using (SaveFileDialog generar = new SaveFileDialog())
-                    {
-                        generar.Filter = "Archivos de Bases de datos Access (*.accdb;*.mdb)|*.accdb;*.mdb";
-
-                        try
-                        {
-                            if (generar.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            {
-                                AdministradorDb.CreateDataBase(generar.FileName, new Problemas(), new Errores(), new Usuarios(), new Turnos(), new Departamentos(), new Lote());
-                                if (AdministradorDb.Conectar())
-                                {
-                                    Settings.Default.CadenaDeConexion = AdministradorDb.CadenaDeConexion;
-                                    Settings.Default.Save();
-                                }
-                            }
-                          
-
-                          
-
-                        }
-                        catch (Exception Error2A)
-                        {
-                            new Log(Error2A.ToString() + Environment.NewLine + Error2A.Message);
-                            TextBlockInformacion.Text = Error2A.Message;
-                            DialogHostMessage.IsOpen = true;
-
-                        }
-
-
-
-                    }
-                }
-                else
-                {
-                    snackbarNormal.MessageQueue.Enqueue("Esta Funcion Solo Esta Habilitada Para Administradores");
-                }
-               
-            }
-            catch (Exception exception)
-            {
-
-                new Log(exception.ToString());
-                TextBlockInformacion.Text = exception.Message;
-                DialogHostMessage.IsOpen = true;
-             
-            }
            
 
         }
 
-        private void ButtonActualizar_Click(object sender, RoutedEventArgs e)
+        private async void ButtonActualizar_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 Limpiar();
-                Actualizar();
+                await UpdateAllAsync();
             }
-            catch ( Exception ar)
+            catch (Exception Error)
             {
-                new Log(ar.ToString() + Environment.NewLine + ar.Message);
-                TextBlockInformacion.Text = ar.Message;
-                DialogHostMessage.IsOpen = true;
-
-                
+                new LogManager("Excepcion en funcion ButtonActualizar_Click", Error); 
             }
            
         }
@@ -347,9 +258,9 @@ namespace Registro_de_errores_ZRP1
         {
             try
             {
-                if (ConcurrentUsuario.PermisoEnum == PERMISO.Administrador || ConcurrentUsuario.PermisoEnum == PERMISO.Programador)
+                if (Usuario.UsuarioActual.Acceso == Access.Administrador || Usuario.UsuarioActual.Acceso == Access.Invitado)
                 {
-                    Adicionar_Elementos adicionar_Elementos = new Adicionar_Elementos();
+                    Adicionar_Elementos adicionar_Elementos = new Adicionar_Elementos(db);
                     adicionar_Elementos.Show();
                 }
                 else
@@ -357,106 +268,115 @@ namespace Registro_de_errores_ZRP1
                     snackbarNormal.MessageQueue.Enqueue("Esta Funcion Solo Esta Habilitada Para Administradores");
                 }
             }
-            catch (Exception error)
+            catch (Exception Error)
             {
 
-                new Log(error.ToString() + Environment.NewLine + error.Message);
-                snackbarNormal.MessageQueue.Enqueue(error.Message);
+                new LogManager("Exepcion en funcion ButtonAgregarUsuarios_Click", Error);
             }
            
         }
 
         private void ComboBoxImpresoras_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ComboBoxImpresoras.SelectedItem != null)
+            try
             {
-                Properties.Settings.Default.ImpresoraDefault = ComboBoxImpresoras.SelectedItem as string;
-                Settings.Default.Save();
+                if (ComboBoxImpresoras.SelectedItem != null)
+                {
+                    Properties.Settings.Default.ImpresoraDefault = ComboBoxImpresoras.SelectedItem as string;
+                    Settings.Default.Save();
+                }
             }
+            catch (Exception Error)
+            {
+
+                new LogManager("Excepcion en Funcion ComboBoxImpresoras_SelectionChanged", Error);
+            }
+         
           
 
         }
 
         private void ComboBoxEtiquetas_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ComboBoxEtiquetas.SelectedItem != null)
+            try
             {
-                Settings.Default.LabelKind = ComboBoxEtiquetas.SelectedItem as string;
-                Settings.Default.Save();
+                if (ComboBoxEtiquetas.SelectedItem != null)
+                {
+                    Settings.Default.LabelKind = ComboBoxEtiquetas.SelectedItem as string;
+                    Settings.Default.Save();
+                }
             }
+            catch (Exception Error)
+            {
+                new LogManager("Excepcion en Funcion ComboBoxEtiquetas_SelectionChanged", Error);
+                
+            }
+           
+
         }
 
-        private void NetworkChange_NetworkAvailabilityChanged(object sender, NetworkAvailabilityEventArgs e)
-        {
-            WifiAvaible(e.IsAvailable);
-        }
+     
 
         #endregion
 
         #region Dialogo de informacion extra
 
-        private  void BottonDialogAcceptar_Click(object sender, RoutedEventArgs e)
+        private async void BottonDialogAcceptar_Click(object sender, RoutedEventArgs e)
         {
-           
-            if ( WifiAvaible())
+            try
             {
-                AdministradorDb.UpdateAsyn((ListviewErrores.SelectedItem as Problemas), context);
-
-                actualizarListview();
-
+                await UpdateListViewAsync();
                 DialogHostInformacionDelError.IsOpen = false;
             }
-           
+            catch (Exception Error)
+            {
 
+                new LogManager(Error);
+            }
+            
         }
 
         private  void BottonDialogEditar_Click(object sender, RoutedEventArgs e)
         {
-        
-            if ( WifiAvaible())
+            try
             {
-                Editar(ListviewErrores.SelectedItem as Problemas);
+                Editar(ListviewErrores.SelectedItem as Reporte);
             }
-           
+            catch (Exception Error)
+            {
+
+                new LogManager("Excepcion en funcion BottonDialogEditar_Click", Error);
+            }
         }
 
         private  void BottonDialogPDF_Click(object sender, RoutedEventArgs e)
         {
-            if ( WifiAvaible())
-            {
                 try
                 {
-                    GeneradorDocument.GenerarPdf(ListviewErrores.SelectedItem as Problemas, AdministradorDb);
+                    GeneradorDocument.GenerarPdf(ListviewErrores.SelectedItem as Reporte);
                 }
-                catch (Exception A5)
+                catch (Exception Error)
                 {
-                    new Log(A5.ToString());
-                    TextBlockInformacion.Text = A5.ToString();
-                    DialogHostMessage.IsOpen = true;
+                  new LogManager("Excepcion en funcion  BottonDialogPDF_Click", Error);
 
                 }
-            }
-          
-           
-
         }
 
-        private  void BottonDialogEliminar_Click(object sender, RoutedEventArgs e)
+        private async void BottonDialogEliminar_Click(object sender, RoutedEventArgs e)
         {
-            if (WifiAvaible())
+            try
             {
-                if (ConcurrentUsuario.PermisoEnum == PERMISO.Programador || ConcurrentUsuario.PermisoEnum == PERMISO.Administrador || ConcurrentUsuario.PermisoEnum == PERMISO.Intermedio)
+                if (Usuario.UsuarioActual.Acceso == Access.Programador || Usuario.UsuarioActual.Acceso == Access.Administrador)
                 {
-                    if (IsConected == true)
+                    using (ConexionDB db = new ConexionDB())
                     {
-                        AdministradorDb.DeleteAsync(ListviewErrores.SelectedItem as Problemas);
-                        actualizarListview();
-                        DialogHostInformacionDelError.IsOpen = false;
+                        db.Reportes.Remove(ListviewErrores.SelectedItem as Reporte);
                     }
-                    else
-                    {
-                        snackbarNormal.MessageQueue.Enqueue("No hay conexion a la red, imposible Eliminar el registro");
-                    }
+
+
+                    await UpdateListViewAsync();
+                    DialogHostInformacionDelError.IsOpen = false;
+
 
                 }
                 else
@@ -464,6 +384,13 @@ namespace Registro_de_errores_ZRP1
                     snackbarNormal.MessageQueue.Enqueue("Esta funcion solo esta habilitada para Administradores o Personal de alto rango");
                 }
             }
+            catch (Exception Error)
+            {
+                new LogManager("Excepcion en funcion BottonDialogEliminar_Click", Error);
+                
+            }
+                
+            
           
            
         }
@@ -472,20 +399,14 @@ namespace Registro_de_errores_ZRP1
         {
             try
             {
-               
-
                 ImpresorasCombo.ItemsSource = rellenar;
                 MostrarImpresion.IsOpen = true;
             }
-            catch (Exception error)
+            catch (Exception Error)
             {
 
-                new Log(error.ToString() + Environment.NewLine + error.Message);
-                snackbarNormal.MessageQueue.Enqueue(error.Message);
+                new LogManager("Excepcion en funcion BottonDialogImprimir_Click", Error);
             }
-
-           
-           
         }
 
         #region Impresion
@@ -497,12 +418,9 @@ namespace Registro_de_errores_ZRP1
 
         }
 
-    
-
         private  void ComenzarImprecionButton_Click(object sender, RoutedEventArgs e)
         {
-            if (WifiAvaible())
-            {
+           
                 try
                 {
                     if (ListviewErrores.SelectedItem != null)
@@ -521,15 +439,9 @@ namespace Registro_de_errores_ZRP1
 
                                 var seleccionada = listPrint.Where(o => o.FullName == filtro).ToList()[0];
 
-                                PrinterLabel.PrintThermalLabel(ListviewErrores.SelectedItem as Problemas, ConcurrentUsuario.Nombre, ImpresorasCombo.SelectedItem as string, Settings.Default.LabelKind);
+                               Entities.PrinterLabel.PrintThermalLabel(ListviewErrores.SelectedItem as Reporte, ImpresorasCombo.SelectedItem as string, Settings.Default.LabelKind);
 
                                 MostrarImpresion.IsOpen = false;
-
-                                //new PrinterLabel().PrintLabel(ListviewErrores.SelectedItem as Problemas, ConcurrentUsuario.Nombre, seleccionada);
-
-
-
-                                //new PrinterLabel().Print(ListviewErrores.SelectedItem as Problemas,ConcurrentUsuario.Nombre, ImpresorasCombo.SelectedItem.ToString());
                             }
                             else
                             {
@@ -551,34 +463,11 @@ namespace Registro_de_errores_ZRP1
                 catch (Exception Error)
                 {
 
-                    new Log(Error.ToString() + Environment.NewLine + Error.Message);
+                new LogManager("Excepcion en funcion ComenzarImprecionButton_Click", Error);
                     ImpresoraSnackbar.MessageQueue.Enqueue(Error.Message);
 
                 }
-            }
-
-           
-         
-
-            //try
-            //{
-            //    string filtro = ImpresorasCombo.SelectedItem as string;
-
-            //    PrintServer server = new PrintServer();
-
-            //    var listPrint = server.GetPrintQueues(new[] {EnumeratedPrintQueueTypes.Local, EnumeratedPrintQueueTypes.Connections });
-
-            //    var seleccionada = listPrint.Where(o => o.Name == filtro).ToList()[0];
-
-            //    new PrinterLabel(ListviewErrores.SelectedItem as Problemas, seleccionada);
-            //    //ImpresionDeEtiqueta();
-            //}
-            //catch (Exception error)
-            //{
-
-            //    ImpresoraSnackbar.MessageQueue.Enqueue(error.Message);
-            //    new Log(error.Message);
-            //}
+  
         }
 
         #endregion
@@ -587,72 +476,91 @@ namespace Registro_de_errores_ZRP1
 
         #region Entrada de informacion
 
-        private void ButtonAgregar_Click(object sender, RoutedEventArgs e)
+        private async void ButtonAgregar_Click(object sender, RoutedEventArgs e)
         {
-            bool IsManual = HoraManualCheckBox.IsChecked ?? false;
-
-            Problemas t = ObtenerDatos(!IsManual);
-            
-            if (WifiAvaible())
+            try
             {
+                bool IsManual = HoraManualCheckBox.IsChecked ?? false;
+
+                Reporte t = ObtenerDatos(null,!IsManual);
+
+
                 if (t != null)
                 {
-                    t.HashCode = t.GetHashCode();
-                    AdministradorDb.InsertarAsync(t);
-                    if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
+                    using (ConexionDB db = new ConexionDB())
                     {
-                        PrinterLabel.PrintThermalLabel(t, ConcurrentUsuario.Nombre, Settings.Default.ImpresoraDefault,Settings.Default.LabelKind);
-                        actualizarListview();
-                        Limpiar();
-                    }
-                    else
-                    {
-                        snackbarNormal.MessageQueue.Enqueue("A ocurrido un error, no se ha podido registrar el reporte");
+                        db.Reportes.Add(t);
+
+                        await db.SaveChangesAsync();
                     }
 
-
+                    Entities.PrinterLabel.PrintThermalLabel(t, Usuario.UsuarioActual.UserName, Settings.Default.ImpresoraDefault, Settings.Default.LabelKind);
+                    await UpdateListViewAsync();
+                    Limpiar();
                 }
                 else
                 {
                     return;
                 }
             }
-            else
+            catch (Exception Error)
             {
-                snackbarNormal.MessageQueue.Enqueue("No hay una conexion a la red, imposible registrar los datos");
+                new LogManager("Excepcion en funcion ButtonAgregar_Click", Error);
+               
             }
+            
+           
 
 
         }
 
         private void ButtonClear_Click(object sender, RoutedEventArgs e)
         {
-            Limpiar();
-            ButtonAgregar.IsEnabled = true;
-            ButtonUpdate.IsEnabled = false;
+            try
+            {
+                Limpiar();
+                ButtonAgregar.IsEnabled = true;
+                ButtonUpdate.IsEnabled = false;
+            }
+            catch (Exception Error)
+            {
+                new LogManager("Excepcion en funcion ButtonClear_Click", Error);
+            }
+          
         }
 
-        private void TextBoxfiltro_TextChanged(object sender, TextChangedEventArgs e)
+        private async void TextBoxfiltro_TextChanged(object sender, TextChangedEventArgs e)
         {
-            Criteria();
+            try
+            {
+                await CriteriaAsync();
+            }
+            catch (Exception Error)
+            {
+
+                new LogManager("Excepcion en TextBoxfiltro_TextChanged", Error);
+            }
+          
         }
 
         private async void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
-            if (WifiAvaible())
+            try
             {
-                if (Old != null)
+                if (context != null)
                 {
-                    Actualizar(Old);
+                    await UpdateViewAsync(context);
                     DatosNuevosHora.IsEnabled = false;
 
                 }
             }
-            else
+            catch (Exception Error)
             {
-                snackbarNormal.MessageQueue.Enqueue("No hay conexion a la red, imposible Actualizar los datos!");
-            
+                new LogManager("Excepcion en ButtonUpdate_Click", Error);
+                
             }
+               
+          
            
         }
 
@@ -660,269 +568,181 @@ namespace Registro_de_errores_ZRP1
 
         #region Interfaz de informacion
 
-        private void ToggleButtonFiltrado_Click(object sender, RoutedEventArgs e)
+        private async void ToggleButtonFiltrado_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                await UpdateListViewAsync();
+            }
+            catch (Exception Error)
+            {
 
-            actualizarListview();
-
+                new LogManager("Excepcion en ToggleButtonFiltrado_Click", Error);
+            }
         }
 
-        private void ListviewErrores_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void ListviewErrores_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender != null)
             {
                 /*DatosShow = new Controles.InformacionAdicional((sender as System.Windows.Controls.ListView).SelectedItem as Problemas)*/
                 try
                 {
-                    Enlazar((sender as System.Windows.Controls.ListView).SelectedItem as Problemas);
+                   await BindAsync((sender as System.Windows.Controls.ListView).SelectedItem as Reporte);
                     DialogHostInformacionDelError.IsOpen = true;
                 }
                 catch (Exception Error)
                 {
-                    new Log(Error.ToString() + Environment.NewLine + Error.Message);
-                    TextBlockInformacion.Text = Error.Message;
-                    DialogHostMessage.IsOpen = true;
-
+                    new LogManager("Excepcion en ListviewErrores_SelectionChanged", Error);
                 }
-               
 
             }
 
         }
 
-        private void ToggleButtonConfirmacionDeEstatus_Checked(object sender, RoutedEventArgs e)
+        private async void ToggleButtonConfirmacionDeEstatus_Checked(object sender, RoutedEventArgs e)
         {
+            try
+            {
+               
+                if (db != null)
+                {
+                    context.Estatus = Estatus.Resuelto;
+                    TextBlockDialogEstatus.Text = context.Estatus.ToString().Replace('_', ' ');
+                    await db.SaveChangesAsync();
+                    await UpdateListViewAsync();
+                } 
+            }
+            catch (Exception Error)
+            {
 
-            context.Estatus = true;
-            TextBlockDialogEstatus.Text = context.EstatusString;
-        }
-
-        private void ToggleButtonConfirmacionDeEstatus_Unchecked(object sender, RoutedEventArgs e)
-        {
+                new LogManager("Excepcion en ToggleButtonConfirmacionDeEstatus_Checked", Error);
+            }
             
-            context.Estatus = false;
-            TextBlockDialogEstatus.Text = context.EstatusString;
         }
 
-        private void ListviewErrores_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void ToggleButtonConfirmacionDeEstatus_Unchecked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (db != null)
+                {
+                    context.Estatus = Estatus.Sin_Resolver;
+                    TextBlockDialogEstatus.Text = context.Estatus.ToString().Replace('_', ' ');
+                    await db.SaveChangesAsync();
+                    await UpdateListViewAsync();
+                }
+
+            }
+            catch (Exception Error)
+            {
+
+                new LogManager("Excepcion en ToggleButtonConfirmacionDeEstatus_Unchecked", Error);
+            }
+           
+
+        }
+
+        private async void ListviewErrores_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (ListviewErrores.SelectedItem != null)
             {
                 try
                 {
-                    Enlazar(ListviewErrores.SelectedItem as Problemas);
+                   await BindAsync(ListviewErrores.SelectedItem as Reporte);
                     DialogHostInformacionDelError.IsOpen = true;
                 }
                 catch (Exception Error)
                 {
-                    new Log(Error.ToString() + Environment.NewLine + Error.Message);
-                    TextBlockInformacion.Text = Error.Message;
-                    DialogHostMessage.IsOpen = true;
+                    new LogManager("Excepcion en ListviewErrores_MouseDoubleClick",Error);
                 }
-              
-
             }
         }
 
         #endregion
 
         #region  Funciones internas
-
-        private async void WifiAvaible(bool Isconected)
+        public async Task CriteriaAsync()
         {
-             
-
-          
-          
-
-
-
-            if (Isconected)
+          await Task.Run(() =>
             {
-               
-                Ping ping = new Ping();
-
-                try
-                {
-                    PingReply reply = await ping.SendPingAsync("www.google.com");
-
-                    if (reply.Status == IPStatus.Success)
-                    {
-                        IsConected = true;
-                        WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Green; });
-                        WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conectado a la red"; });
-                    }
-                    else
-                    {
-                        IsConected = false;
-                        WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Red; });
-                        WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conexion no disponible!"; });
-                    }
-                }
-                catch (Exception Error)
-                {
-
-                    new Log(Error.ToString());
-                    IsConected = false;
-                    
-                }
-             
-
-                
-                
-
-
-               
-
-            }
-            else
-            {
-                IsConected = false;
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Red; });
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conexion no disponible!"; });
-
-            }
-
-
-
-
-        }
-
-      
-
-        private bool WifiAvaible()
-        {
-
-            if (NetworkInterface.GetIsNetworkAvailable())
-            {
-                IsConected = true;
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Green; });
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conectado a la red"; });
-                return true;
-            }
-            else
-            {
-                IsConected = false;
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.Foreground = System.Windows.Media.Brushes.Red; });
-                WifiEstatus.Dispatcher.Invoke(() => { WifiEstatus.ToolTip = "Conexion no disponible!"; });
-                snackbarNormal.Dispatcher.Invoke(() => { snackbarNormal.MessageQueue.Enqueue("Sin conexion a Internet, imposible realizar la operacion"); });
-                return false;
-            }
-        }
-
-        public async void Criteria()
-        {
-
-          await Task.Factory.StartNew(() =>
-            {
-                this.Dispatcher.Invoke(() =>
+                this.Dispatcher.Invoke(async () =>
                 {
                     if (!string.IsNullOrWhiteSpace(TextBoxfiltro.Text))
                     {
                         if (bufferError.Count > 0)
                         {
                             ListviewErrores.SelectionChanged -= ListviewErrores_SelectionChanged;
-                            ListviewErrores.ItemsSource = bufferError.Where(o => o.Departamento.ToLowerInvariant().Contains(TextBoxfiltro.Text.ToLowerInvariant()) ||
-                            o.HashCode.ToString().ToLowerInvariant().Contains(TextBoxfiltro.Text.ToLowerInvariant()) ||
-                            o.Orden.ToLowerInvariant().Contains(TextBoxfiltro.Text.ToLowerInvariant()) ||
-                            o.Material.ToLowerInvariant().Contains(TextBoxfiltro.Text.ToLowerInvariant()) ||
-                            o.HU.ToLowerInvariant().Contains(TextBoxfiltro.Text.ToLowerInvariant()) ||
-                            o.Problema.ToLowerInvariant().Contains(TextBoxfiltro.Text.ToLowerInvariant()) ||
-                            o.Usuario.ToLowerInvariant().Contains(TextBoxfiltro.Text.ToLowerInvariant()) ||
-                            o.EstatusString.ToLowerInvariant().Contains(TextBoxfiltro.Text.ToLowerInvariant())
 
-                             );
+                            string c = TextBoxfiltro.Text.ToLowerInvariant();
+                            ListviewErrores.ItemsSource = (from o in bufferError
+                                           where
+                                           o.Hash.ToString().Contains(c) ||
+                                           o.Orden.ToLowerInvariant().Contains(c) ||
+                                           o.Material.ToLowerInvariant().Contains(c) ||
+                                           o.Hu.Contains(c) ||
+                                           o.Incidente.ToLowerInvariant().Contains(c) ||
+                                           o.UserName.ToLowerInvariant().Contains(c) ||
+                                           o.Estatus.ToString().ToLowerInvariant().Contains(c) ||
+                                           o.Fecha.ToString("dd/MM/yyyy").Contains(c) ||
+                                           o.Departamento.ToString().ToLowerInvariant().Contains(c)
+                                           select o).ToList();
+
                             ListviewErrores.SelectionChanged += ListviewErrores_SelectionChanged;
 
                         }
-
-
-
-
-
-
                     }
                     else
                     {
-                        actualizarListview();
+                      await  UpdateListViewAsync();
                     }
                 });
           });
-           
-
         }
 
-        public  void Editar(Problemas error)
+        public  void Editar(Reporte reporte)
         {
-            if ( WifiAvaible())
-            {
-                ComboBoxTurnos.Text = error.Turno;
-                ComboBoxUsuarios.SelectedItem = AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", error.Usuario)).Result[0];
-                DatosNuevosComboProblema.Text = error.Problema;
-                DatosNuevosComboResponsable.Text = error.Departamento;
-                DatosNuevosHora.IsEnabled = true;
-                DatosNuevosHora.Text = error.Fecha.ToString("h:mm tt", CultureInfo.InvariantCulture);
-                DatosNuevosTextBoxHU.Text = error.HU;
-                DatosNuevosTextBoxInformacionAdicional.Text = error.Informacion_Extra;
-                DatosNuevosTextBoxMaterial.Text = error.Material;
-                DatosNuevosTextBoxOrden.Text = error.Orden;
 
-                Old = new Problemas { Id = error.Id, Estatus = error.Estatus, Fecha = error.Fecha, HashCode = error.HashCode };
-                ButtonAgregar.IsEnabled = false;
-                ButtonUpdate.IsEnabled = true;
-                DialogHostInformacionDelError.IsOpen = false;
-            }
-          
-
+            ComboBoxTurnos.Text = reporte.Turno.ToString();
+            ComboBoxUsuarios.SelectedItem = reporte.Usuario;
+            DatosNuevosComboProblema.Text = reporte.Incidente.ToString();
+            DatosNuevosComboResponsable.Text = reporte.Departamento.ToString();
+            DatosNuevosHora.IsEnabled = true;
+            DatosNuevosHora.Text = reporte.Fecha.ToString("h:mm tt", CultureInfo.InvariantCulture);
+            DatosNuevosTextBoxHU.Text = reporte.Hu;
+            DatosNuevosTextBoxInformacionAdicional.Text = reporte.Descripcion;
+            DatosNuevosTextBoxMaterial.Text = reporte.Material;
+            DatosNuevosTextBoxOrden.Text = reporte.Orden;
+            Old = reporte;
+            ButtonAgregar.IsEnabled = false;
+            ButtonUpdate.IsEnabled = true;
+            DialogHostInformacionDelError.IsOpen = false;
         }
 
-        public void Actualizar(Problemas old)
-        {
-            if ( WifiAvaible())
-            {
+        public async Task UpdateViewAsync(Reporte reporte)
+        { 
                 try
                 {
-                    Problemas buf = ObtenerDatos(false);
+                    Reporte buf = ObtenerDatos(reporte,false);
                     if (buf != null)
                     {
-                        buf.Estatus = old.Estatus;
-                        buf.Fecha = new DateTime(old.Fecha.Year, old.Fecha.Month, old.Fecha.Day, buf.Fecha.Hour, buf.Fecha.Minute, 0);
-                        buf.HashCode = old.HashCode;
-                        AdministradorDb.UpdateAsyn(old, buf);
-                        if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
-                        {
-                            snackbarNormal.MessageQueue.Enqueue(string.Format("Problema: {0}, Actualizado!", buf.HashCode));
-                            actualizarListview();
-                            Limpiar();
-                            ButtonAgregar.IsEnabled = true;
-                            ButtonUpdate.IsEnabled = false;
-                        }
-                        else
-                        {
-                            snackbarNormal.MessageQueue.Enqueue("A ocurrido un error, No se actualizo el reporte, intente de nuevo!");
-                        }
+                        
+                    
+                      
+                        await db.SaveChangesAsync();
 
-
+                        snackbarNormal.MessageQueue.Enqueue(string.Format("Problema: {0}, Actualizado!", buf.Hash));
+                        await UpdateListViewAsync();
+                        Limpiar();
+                        ButtonAgregar.IsEnabled = true;
+                        ButtonUpdate.IsEnabled = false;
 
                     }
-                    else
-                    {
-                        return;
-                    }
-
                 }
-                catch (Exception A5)
+                catch (Exception Error)
                 {
-                    new Log(A5.Message);
-                    TextBlockInformacion.Text = A5.Message;
-                    DialogHostMessage.IsOpen = true;
+                new LogManager("Excepcion en UpdateViewAsync",Error);
                 }
-            }
-          
-
-
-
-
         }
 
         public void Limpiar()
@@ -947,15 +767,19 @@ namespace Registro_de_errores_ZRP1
 
         }
 
-        public Problemas ObtenerDatos(bool Actual = true)
+        public Reporte ObtenerDatos(Reporte buffer = null,bool Actual = true)
         {
             try
             {
-                Problemas buffer = new Problemas();
 
+                if (buffer == null)
+                {
+                    buffer = new Reporte();
+                }
                 if (ComboBoxTurnos.SelectedItem != null)
                 {
-                    buffer.Turno = ComboBoxTurnos.SelectedItem.ToString();
+
+                    buffer.Turno = (Turno)ComboBoxTurnos.SelectedItem;
                 }
                 else
                 {
@@ -966,7 +790,7 @@ namespace Registro_de_errores_ZRP1
                 }
                 if (ComboBoxUsuarios.SelectedItem != null)
                 {
-                    buffer.Usuario = (ComboBoxUsuarios.SelectedItem as Usuarios).UserName;
+                    buffer.UserName = (ComboBoxUsuarios.SelectedItem as Usuario).UserName;
                 }
                 else
                 {
@@ -977,7 +801,7 @@ namespace Registro_de_errores_ZRP1
                 }
                 if (DatosNuevosComboProblema.SelectedItem != null)
                 {
-                    buffer.Problema = DatosNuevosComboProblema.SelectedItem.ToString();
+                    buffer.Incidente = DatosNuevosComboProblema.SelectedItem.ToString();
                 }
                 else
                 {
@@ -988,7 +812,7 @@ namespace Registro_de_errores_ZRP1
                 }
 
 
-                buffer.HU = DatosNuevosTextBoxHU.Text;
+                buffer.Hu = DatosNuevosTextBoxHU.Text;
                 buffer.Material = DatosNuevosTextBoxMaterial.Text;
 
                 if (Actual)
@@ -1015,7 +839,7 @@ namespace Registro_de_errores_ZRP1
 
                 if (DatosNuevosComboResponsable.SelectedItem != null)
                 {
-                    buffer.Departamento = DatosNuevosComboResponsable.SelectedItem.ToString();
+                    buffer.Departamento = (Departamento)DatosNuevosComboResponsable.SelectedItem;
                 }
                 else
                 {
@@ -1026,8 +850,8 @@ namespace Registro_de_errores_ZRP1
                 }
 
                 buffer.Orden = DatosNuevosTextBoxOrden.Text;
-                buffer.Estatus = false;
-                buffer.Informacion_Extra = DatosNuevosTextBoxInformacionAdicional.Text;
+                buffer.Estatus = Estatus.Sin_Resolver;
+                buffer.Descripcion = DatosNuevosTextBoxInformacionAdicional.Text;
 
 
                
@@ -1036,215 +860,198 @@ namespace Registro_de_errores_ZRP1
                 
 
             }
-            catch (Exception b2)
+            catch (Exception Error)
             {
 
-                new Log(b2.Message);
-                return new Problemas();
+                new LogManager(Error);
+                return new Reporte();
                 
                     
             }
            
         }
 
-        private async  void Enlazar(Problemas data)
+        private async Task BindAsync(Reporte reporte)
         {
             
-          await Task.Factory.StartNew(() =>
+             await Task.Run(() =>
               {
 
                 this.Dispatcher.Invoke( () =>
                
                 {
-                    context = data;
-                    this.TextBlockDialogHashCode.Text = data.HashCode.ToString();
-                    this.TextBlockDialogProblema.Text = data.Problema;
-                    this.TextBlockDialogFecha.Text = data.Fecha.ToString();
-                    this.TextBlockDialogOrden.Text = data.Orden;
-                    this.TextBlockDialogMaterial.Text = data.Material;
-                    this.TextBlockDialogHU.Text = data.HU;
-                    if ( WifiAvaible())
+                    context = reporte;
+                    this.TextBlockDialogHashCode.Text = reporte.Hash.ToString();
+                    this.TextBlockDialogProblema.Text = reporte.Incidente;
+                    this.TextBlockDialogFecha.Text = reporte.Fecha.ToString();
+                    this.TextBlockDialogOrden.Text = reporte.Orden;
+                    this.TextBlockDialogMaterial.Text = reporte.Material;
+                    this.TextBlockDialogHU.Text = reporte.Hu;
+                    this.TextBlockDialogClerck.Text = reporte.Usuario.Nombre;
+                    this.TextBlockDialogDepartamento.Text = reporte.Departamento.ToString();
+                    if (reporte.Estatus == Estatus.Resuelto)
                     {
-                        if (AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", data.Usuario)).Result.Count > 0)
-                        {
-                            this.TextBlockDialogClerck.Text = AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", data.Usuario)).Result[0].Nombre;
-                        }
+                        this.ToggleButtonConfirmacionDeEstatus.IsChecked = true;
                     }
                     else
                     {
-                        this.TextBlockDialogClerck.Text = data.Usuario;
+                        this.ToggleButtonConfirmacionDeEstatus.IsChecked = false;
                     }
-                  
-
-
-                    this.TextBlockDialogDepartamento.Text = data.Departamento;
-                    this.ToggleButtonConfirmacionDeEstatus.IsChecked = data.Estatus;
-                    this.spanderText.Text = data.Problema;
-                    this.TextBlockDialogInformacionAdicional.Text = data.Informacion_Extra;
-                    this.TextBlockDialogEstatus.Text = data.EstatusString;
+                   
+                    this.spanderText.Text = reporte.Incidente;
+                    this.TextBlockDialogInformacionAdicional.Text = reporte.Descripcion;
+                    this.TextBlockDialogEstatus.Text = reporte.Estatus.ToString().Replace('_', ' ');
                 }
                     
                     );
-
             }
             );
-                   
-              
-            
-
         }
 
-        private async void Actualizar()
+        private async Task UpdateAllAsync()
         {
-            try
-            {
+           
               
-                ComboBoxProviders.SelectionChanged -= ComboBoxProviders_SelectionChanged;
-                ComboBoxProviders.ItemsSource = AdministradorDb.GetProviders();
-                ComboBoxProviders.SelectionChanged += ComboBoxProviders_SelectionChanged;
-                ActualizarImpresoras();
-                ActualizarEtiquetas();
-                if (WifiAvaible())
-                {
-                    if (!string.IsNullOrEmpty(AdministradorDb.CadenaDeConexion))
+              
+              await UpdatePrintersAsync();
+              await UpdateLabelsAsync();
+
+            var list = await db.Usuarios.ToListAsync();
+            var result = list.Find(o => o.UserName.ToUpperInvariant() == Environment.UserName.ToUpperInvariant());
+           
+
+                    if (result != null)
                     {
-                        this.ComboBoxUsuarios.ItemsSource = await AdministradorDb.ReadAsync<Usuarios>();
-                        this.ComboBoxTurnos.ItemsSource = await AdministradorDb.ReadAsync<Turnos>();
-                        IconoDatabase.ToolTip = AdministradorDb.CadenaDeConexion;
-                        DatosNuevosComboProblema.ItemsSource = await AdministradorDb.ReadAsync<Errores>();
-                        DatosNuevosComboResponsable.ItemsSource = await AdministradorDb.ReadAsync<Departamentos>();
-                        HoraMargen.Text = DateTime.Now.ToString("dd/MM/yyyy");
-                        actualizarListview();
-                     
-                      
-                        
-                        IconoDatabase.Foreground = System.Windows.Media.Brushes.Green;
-
-
-                        if (AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Environment.UserName.ToUpper())).Result.Count > 0)
+                        Usuario.UsuarioActual = result;
+                        if (ChipUsuario != null)
                         {
-                            ConcurrentUsuario = AdministradorDb.ReadAsync<Usuarios>(string.Format("UserName=\"{0}\"", Environment.UserName.ToLowerInvariant())).Result[0];
-                            ChipUsuario.Content = ConcurrentUsuario.Nombre;
-                            if (AdministradorDb.Estado == Estados.Operacion_Exitosa)
+                    ChipUsuario.Content = Usuario.UsuarioActual.ToString();
+                            if (Usuario.UsuarioActual.Imagen != null)
                             {
-                                IconoDatabase.Foreground = System.Windows.Media.Brushes.Green;
-                                IconoDatabase.ToolTip = AdministradorDb.CadenaDeConexion;
+                                ChipUsuario.Icon = Usuario.UsuarioActual.Imagen.ToImage();
                             }
+                        }
+
+                    }
+            else
+            {
+                Usuario.UsuarioActual = new Usuario("AA00", "Invitado", "000000", Access.Invitado);
+                ChipUsuario.Content = Usuario.UsuarioActual.ToString();
+            }
+
+
+            this.ComboBoxUsuarios.ItemsSource = db.Usuarios.ToList();
+
+                    this.ComboBoxTurnos.ItemsSource = Enum.GetValues(typeof(Turno));
+                    this.DatosNuevosComboResponsable.ItemsSource = Enum.GetValues(typeof(Departamento));
+                    this.DatosNuevosComboProblema.ItemsSource = Reporte.Incidentes;
+                    HoraMargen.Text = DateTime.Now.ToString("dd/MM/yyyy");
+                
+ 
+                await UpdateListViewAsync();
+               
+          
+        }
+
+        private async Task UpdatePrintersAsync()
+        {
+            await Task.Run(() =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ComboBoxImpresoras.SelectionChanged -= ComboBoxImpresoras_SelectionChanged;
+                    ComboBoxImpresoras.ItemsSource = null;
+                    ComboBoxImpresoras.Items.Clear();
+                    rellenar.Clear();
+                    var server = new PrintServer();
+
+                    var con = server.GetPrintQueues(new[] { EnumeratedPrintQueueTypes.Local, EnumeratedPrintQueueTypes.Connections });
+
+
+
+                    foreach (var item in con)
+                    {
+                        //if (item.Name.Contains("MP"))
+                        //{
+                        //    rellenar.Add(item.FullName);
+                        //}
+
+                        rellenar.Add(item.FullName);
+
+                    }
+
+
+
+                    ComboBoxImpresoras.ItemsSource = rellenar;
+                    ComboBoxImpresoras.SelectedItem = Settings.Default.ImpresoraDefault;
+                    ComboBoxImpresoras.SelectionChanged += ComboBoxImpresoras_SelectionChanged;
+                });
+            });
+          
+        }
+
+        private async Task UpdateLabelsAsync()
+        {
+
+            await Task.Run(() =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ComboBoxEtiquetas.SelectionChanged -= ComboBoxEtiquetas_SelectionChanged;
+                    ComboBoxEtiquetas.ItemsSource = null;
+                    ComboBoxEtiquetas.Items.Clear();
+
+
+                    string[] ubicacion = Directory.GetFiles(Environment.CurrentDirectory + @"\Etiquetas");
+
+                    for (int i = 0; i < ubicacion.Length; i++)
+                    {
+                        ComboBoxEtiquetas.Items.Add(Path.GetFileName(ubicacion[i]));
+
+                    }
+                    ComboBoxEtiquetas.SelectedItem = Settings.Default.LabelKind;
+                    ComboBoxEtiquetas.SelectionChanged += ComboBoxEtiquetas_SelectionChanged;
+
+                });
+            });
+          
+        }
+
+        private async Task UpdateListViewAsync()
+        {
+            await Task.Run(() =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+
+                    ListviewErrores.SelectionChanged -= ListviewErrores_SelectionChanged;
+
+                   
+                        if (ToggleButtonFiltrado.IsChecked ?? true)
+                        {
+                             var con = from consulta in db.Reportes
+                                       where consulta.Estatus == Estatus.Resuelto
+                                       select consulta;
+                            this.ListviewErrores.ItemsSource = con.ToList();
+                            bufferError = con.ToList();
+                         
                         }
                         else
                         {
-                            ConcurrentUsuario.PermisoEnum = PERMISO.Usuario;
-                            ChipUsuario.Content = Environment.UserName.ToUpperInvariant();
+                            var con = from consulta in db.Reportes
+                                      where consulta.Estatus == Estatus.Sin_Resolver
+                                      select consulta;
+                            this.ListviewErrores.ItemsSource = con.ToList();
+                            bufferError = con.ToList();
                         }
-
-                    }
-                    else
-                    {
-                        IconoDatabase.Foreground = System.Windows.Media.Brushes.Red;
-                        IconoDatabase.ToolTip = "No se ha encontrado o especificado una cadena de conexion.";
-                        throw new Exception("No se ha encontrado o especificado una cadena de conexion.");
-                    }
-
-                }
-                else
-                {
-                    snackbarNormal.MessageQueue.Enqueue("No hay conexion a la red, imposible Actualizar los datos!");
-                }
-               
-
-
-               
-            }
-            catch (Exception b3)
-            {
-                new Log(b3.ToString());
-                TextBlockInformacion.Text = b3.ToString();
-                DialogHostMessage.IsOpen = true;
-                
-            }
-          
-
-        }
-
-        private void ActualizarImpresoras()
-        {
-            ComboBoxImpresoras.SelectionChanged -= ComboBoxImpresoras_SelectionChanged;
-            ComboBoxImpresoras.ItemsSource = null;
-            ComboBoxImpresoras.Items.Clear();
-            rellenar.Clear();
-            var server = new PrintServer();
-
-            var con = server.GetPrintQueues(new[] { EnumeratedPrintQueueTypes.Local, EnumeratedPrintQueueTypes.Connections });
-
-
-
-            foreach (var item in con)
-            {
-                //if (item.Name.Contains("MP"))
-                //{
-                //    rellenar.Add(item.FullName);
-                //}
-
-                rellenar.Add(item.FullName);
-
-            }
-
-           
-
-            ComboBoxImpresoras.ItemsSource = rellenar;
-            ComboBoxImpresoras.SelectedItem = Settings.Default.ImpresoraDefault;
-            ComboBoxImpresoras.SelectionChanged += ComboBoxImpresoras_SelectionChanged;
-        }
-
-        private void ActualizarEtiquetas()
-        {
-            ComboBoxEtiquetas.SelectionChanged -= ComboBoxEtiquetas_SelectionChanged;
-            ComboBoxEtiquetas.ItemsSource = null;
-            ComboBoxEtiquetas.Items.Clear();
-           
-            string[] ubicacion = Directory.GetFiles(Environment.CurrentDirectory + @"\Etiquetas");
-
-            for (int i = 0; i < ubicacion.Length; i++)
-            {
-                ComboBoxEtiquetas.Items.Add(Path.GetFileName(ubicacion[i]));
-
-            }
-            ComboBoxEtiquetas.SelectedItem = Settings.Default.LabelKind;
-            ComboBoxEtiquetas.SelectionChanged += ComboBoxEtiquetas_SelectionChanged;
-        }
-
-        async void actualizarListview()
-        {
-            if(WifiAvaible())
-            {
-                try
-                {
-                    ListviewErrores.SelectionChanged -= ListviewErrores_SelectionChanged;
-                    if (ToggleButtonFiltrado.IsChecked ?? false)
-                    {
-                        this.ListviewErrores.ItemsSource = from n in AdministradorDb.ReadAsync<Problemas>().Result where n.Estatus == true select n;
-                        bufferError = await AdministradorDb.ReadAsync<Problemas>();
-
-                        var t = ListviewErrores.Items;
-
-
-
-
-                    }
-                    else
-                    {
-                        this.ListviewErrores.ItemsSource = from a in AdministradorDb.ReadAsync<Problemas>().Result where a.Estatus == false select a;
-                        bufferError = await AdministradorDb.ReadAsync<Problemas>();
-                    }
+                    
+             
                     ListviewErrores.SelectionChanged += ListviewErrores_SelectionChanged;
-                }
-                catch (Exception b1)
-                {
-                    new Log(b1.ToString());
-                    TextBlockInformacion.Text = b1.Message;
-                    DialogHostMessage.IsOpen = true;
-                }
-            }
+                });
+            });
+                
+                
+            
           
            
           
@@ -1254,7 +1061,7 @@ namespace Registro_de_errores_ZRP1
         private void ChipUsuario_Click(object sender, RoutedEventArgs e)
         {
            
-                Registro_de_resina Resina = new Registro_de_resina();
+                RegistroResina Resina = new RegistroResina();
                 Resina.Show();
             
         }
@@ -1265,6 +1072,29 @@ namespace Registro_de_errores_ZRP1
             {
                 Limpiar();
             }
+
+        }
+
+        private async void BotonGenerarExcel_Click(object sender, RoutedEventArgs e)
+        {
+            List<Reporte> pem = ListviewErrores.Items.Cast<Reporte>().ToList();
+
+
+            using (FolderBrowserDialog folder = new FolderBrowserDialog())
+            {
+                if (folder.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    string path = string.Format("{0}\\Reporte_{1}", folder.SelectedPath, DateTime.Now.ToString("dd_MM_yyyy"));
+                    await  pem.ToExcelDocumentAsync(path);
+
+
+                }
+            }
+           
+
+           
+
+
 
         }
 
@@ -1279,8 +1109,10 @@ namespace Registro_de_errores_ZRP1
             {
                 if (disposing)
                 {
-                    AdministradorDb.Dispose();
+
                    
+                    db.Dispose();
+                    db = null;
                 }
 
                 bufferError = null;
@@ -1317,25 +1149,22 @@ namespace Registro_de_errores_ZRP1
         }
 
 
+
+
+
         #endregion
 
-        private void BotonGenerarExcel_Click(object sender, RoutedEventArgs e)
+        private async void Window_Initialized(object sender, EventArgs e)
         {
-            List<Problemas> pem = ListviewErrores.Items.Cast<Problemas>().ToList();
-
-            if (WifiAvaible())
+            try
             {
-                FolderBrowserDialog folder = new FolderBrowserDialog();
-                if (folder.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    string path = string.Format("{0}\\Reporte_{1}", folder.SelectedPath, DateTime.Now.ToString("dd_MM_yyyy"));
-                    InteropExcelDataBase.GenerarHojaExcel(pem.ToArray(), path);
-                    //ListviewErrores.ItemsSource = InteropExcelDataBase.ConvertIDateableToDataTable(pem.ToArray()).AsEnumerable();
-
-                }
+                await UpdateAllAsync();
             }
-           
-            
+            catch (Exception Error)
+            {
+                new LogManager("Excepcion en Window_Loaded", Error);
+            }
+
         }
     }
       
